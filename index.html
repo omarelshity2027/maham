@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مهامي</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>مهامي</h1>
+    <p>مدير مهام بسيط بقاعدة بيانات خارجية</p>
+  </header>
+
+  <main class="container">
+    <section id="setup-notice" class="setup-notice hidden">
+      <h2>الموقع غير مهيّأ بعد</h2>
+      <ol>
+        <li>ضع إعدادات Firebase الخاصة بك في <code>config.js</code></li>
+        <li>افتح <strong>Firebase Console</strong> → Realtime Database → قواعد (Rules) وارمِ محتوى ملف <code>firebase.rules.json</code> ثم Publish</li>
+        <li>أعد رفع الموقع على GitHub Pages</li>
+      </ol>
+    </section>
+
+    <section class="task-form">
+      <h2>إضافة مهمة</h2>
+      <form id="task-form">
+        <div class="field">
+          <label for="title">العنوان</label>
+          <input type="text" id="title" name="title" required placeholder="مثال: مراجعة تقرير الأسبوع">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="priority">الأولوية</label>
+            <select id="priority" name="priority">
+              <option value="low">منخفضة</option>
+              <option value="medium" selected>متوسطة</option>
+              <option value="high">عالية</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="category">التصنيف</label>
+            <input type="text" id="category" name="category" placeholder="مثال: عمل">
+          </div>
+          <div class="field">
+            <label for="due_date">الموعد النهائي</label>
+            <input type="date" id="due_date" name="due_date">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">إضافة المهمة</button>
+      </form>
+    </section>
+
+    <section class="task-list">
+      <div class="list-header">
+        <h2>قائمة المهام</h2>
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">الكل</button>
+          <button class="filter-btn" data-filter="pending">قيد التنفيذ</button>
+          <button class="filter-btn" data-filter="completed">مكتملة</button>
+        </div>
+      </div>
+      <div id="task-list" class="tasks"></div>
+      <p id="empty-state" class="empty-state hidden">لا توجد مهام بعد.</p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
