@@ -225,8 +225,6 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
   <button class="nav-btn" data-view="leaves"><span class="ico">🗓️</span> الإجازات والأذونات</button>
   <button class="nav-btn" data-view="audit"><span class="ico">📜</span> سجل العمليات</button>
   <button class="nav-btn" data-view="settings"><span class="ico">⚙️</span> الإعدادات</button>
-  <button class="nav-btn" data-view="audit"><span class="ico">🧾</span> سجل العمليات</button>
-  <button class="nav-btn" data-view="backup"><span class="ico">🗄️</span> النسخ الاحتياطي</button>
 </nav>
 
 <div id="main">
@@ -470,43 +468,6 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
       </div>
     </div>
 
-    <!-- AUDIT LOG -->
-    <div class="view" id="view-audit">
-      <div class="section-head"><h3>سجل العمليات</h3></div>
-      <div class="search-bar">
-        <select id="auditEntityFilter">
-          <option value="">كل الأنواع</option>
-          <option value="employee">الموظفون</option>
-          <option value="transaction">الحركات اليومية</option>
-          <option value="loan">السلف</option>
-          <option value="leave">الإجازات والأذونات</option>
-          <option value="settings">الإعدادات</option>
-        </select>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>الوقت</th><th>النوع</th><th>الوصف</th></tr></thead>
-          <tbody id="auditBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- BACKUP -->
-    <div class="view" id="view-backup">
-      <div class="section-head"><h3>النسخ الاحتياطي</h3></div>
-      <div class="card settings-card">
-        <h4>تصدير نسخة احتياطية كاملة</h4>
-        <p style="color:var(--muted); font-size:13px; margin:0 0 10px;">يشمل: الموظفون، الحضور، الحركات اليومية، السلف، الإجازات، والإعدادات — في ملف JSON واحد.</p>
-        <button class="btn btn-primary" id="exportBackupBtn">⬇️ تصدير نسخة احتياطية</button>
-
-        <h4>استيراد / استعادة</h4>
-        <p style="color:var(--muted); font-size:13px; margin:0 0 10px;">استعادة نسخة سابقة ستضيف أو تحدّث السجلات بنفس المعرّفات — لن تُحذف بيانات موجودة حاليًا وليست في الملف.</p>
-        <input type="file" id="restoreFile" accept="application/json" style="margin-bottom:10px;">
-        <br>
-        <button class="btn btn-danger" id="restoreBackupBtn">⬆️ استعادة من ملف</button>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -747,13 +708,21 @@ const firebaseConfig = {
 let firestore = null;
 // غلاف بسيط بيخلي firestore يتكلم بنفس شكل db.collection()/db.doc() المستخدم في باقي الكود،
 // عشان مانحتاجش نعدل مئات الأسطر اللي مكتوبة تحت.
+let connectionConfirmed = false;
+function markConnected(){
+  if(!connectionConfirmed){ connectionConfirmed = true; setStatus('ok','متصل'); }
+}
 function makeCollectionWrapper(name){
   const colRef = firestore.collection(name);
   return {
     onSnapshot(cb){
       return colRef.onSnapshot(snap=>{
+        markConnected();
         cb(snap.docs.map(d=>({id:d.id, data:d.data()})));
-      }, err=> setStatus('offline','غير متصل'));
+      }, err=>{
+        console.error('Firestore error on '+name+':', err.code, err.message);
+        setStatus('offline', err.code==='permission-denied' ? 'مرفوض — تحقق من Firestore Rules' : 'تعذر الاتصال — راجع الإعدادات');
+      });
     },
     add(data){ return colRef.add(data); },
     doc(id){
@@ -765,6 +734,13 @@ function makeCollectionWrapper(name){
 function initDb(){
   firebase.initializeApp(firebaseConfig);
   firestore = firebase.firestore();
+  // بيحل مشاكل الشبكات اللي بتحجب الاتصال الفوري (WebChannel) وبيرجع لطريقة أبطأ بس مضمونة أكتر
+  firestore.settings({ experimentalAutoDetectLongPolling: true });
+  // بيخزّن نسخة من البيانات على الجهاز نفسه، فبعد أي ريفريش البيانات تظهر فورًا من الكاش
+  // بينما النظام بيتأكد من وجود تحديثات جديدة في الخلفية
+  firestore.enablePersistence({synchronizeTabs:true}).catch(err=>{
+    console.warn('Offline persistence غير مفعّل:', err.code);
+  });
   return { collection:(name)=>makeCollectionWrapper(name), doc:(path)=>{ const [c,id]=path.split('/'); return makeCollectionWrapper(c).doc(id); } };
 }
 
@@ -780,6 +756,9 @@ async function init(){
   if(db){
     setStatus('syncing', 'جاري المزامنة…');
     watchCollections();
+    setTimeout(()=>{
+      if(!connectionConfirmed) setStatus('offline', 'تعذر الاتصال بعد محاولة — تحقق من Firestore Rules والدومين المسموح به');
+    }, 8000);
   } else {
     setStatus('offline', 'يعمل محليًا (بدون مزامنة)');
     renderSettingsForm();
@@ -879,6 +858,11 @@ function rangeFor(p){
 }
 
 // ---------- render ----------
+function loadingRow(colspan, emptyText){
+  if(db && !connectionConfirmed) return `<tr><td colspan="${colspan}" class="empty">⏳ جاري تحميل البيانات من الخادم…</td></tr>`;
+  return `<tr><td colspan="${colspan}" class="empty">${emptyText}</td></tr>`;
+}
+
 function renderAll(){
   renderDashboard(); renderEmployees(); renderAttendance(); populateAttEmployeeSelect();
   renderTransactions(); renderLoans(); populateEmployeeSelects(); renderLeaves(); renderAudit();
@@ -955,7 +939,7 @@ function renderDashboard(){
 
   // live status table
   if(employees.length===0){
-    $('#liveStatusBody').innerHTML = `<tr><td colspan="4" class="empty">لا يوجد موظفون بعد — ابدأ بإضافة أول موظف</td></tr>`;
+    $('#liveStatusBody').innerHTML = loadingRow(4, 'لا يوجد موظفون بعد — ابدأ بإضافة أول موظف');
   } else {
     $('#liveStatusBody').innerHTML = employees.map(e=>{
       const last = lastByEmp[e.id];
@@ -978,7 +962,7 @@ function renderEmployees(){
     return matchQ && matchS;
   });
   if(list.length===0){
-    $('#employeesBody').innerHTML = `<tr><td colspan="8" class="empty">لا توجد نتائج</td></tr>`;
+    $('#employeesBody').innerHTML = loadingRow(8, 'لا توجد نتائج');
     return;
   }
   $('#employeesBody').innerHTML = list.map(e=>`
@@ -1006,7 +990,7 @@ function renderAttendance(){
   const todays = attendance.filter(a=> new Date(a.timestamp).toDateString()===today)
     .sort((a,b)=> new Date(b.timestamp)-new Date(a.timestamp));
   if(todays.length===0){
-    $('#attendanceBody').innerHTML = `<tr><td colspan="4" class="empty">لا توجد حركات اليوم</td></tr>`;
+    $('#attendanceBody').innerHTML = loadingRow(4, 'لا توجد حركات اليوم');
     return;
   }
   $('#attendanceBody').innerHTML = todays.map(a=>{
@@ -1026,7 +1010,7 @@ function renderTransactions(){
   let list = [...transactions].sort((a,b)=> new Date(b.date)-new Date(a.date) || (b.refNo||0)-(a.refNo||0));
   list = list.filter(t=> (!empF || t.employeeId===empF) && (!typeF || t.type===typeF));
   if(list.length===0){
-    $('#transactionsBody').innerHTML = `<tr><td colspan="7" class="empty">لا توجد حركات مسجلة</td></tr>`;
+    $('#transactionsBody').innerHTML = loadingRow(7, 'لا توجد حركات مسجلة');
     return;
   }
   $('#transactionsBody').innerHTML = list.map(t=>{
@@ -1047,7 +1031,7 @@ function renderTransactions(){
 
 function renderLoans(){
   if(loans.length===0){
-    $('#loansBody').innerHTML = `<tr><td colspan="8" class="empty">لا توجد سلف مسجلة</td></tr>`;
+    $('#loansBody').innerHTML = loadingRow(8, 'لا توجد سلف مسجلة');
     return;
   }
   $('#loansBody').innerHTML = loans.map(l=>{
@@ -1078,7 +1062,7 @@ function renderLeaves(){
   let list = [...leaves].sort((a,b)=> new Date(b.from)-new Date(a.from));
   list = list.filter(l=> !statusF || l.status===statusF);
   if(list.length===0){
-    $('#leavesBody').innerHTML = `<tr><td colspan="8" class="empty">لا توجد طلبات مسجلة</td></tr>`;
+    $('#leavesBody').innerHTML = loadingRow(8, 'لا توجد طلبات مسجلة');
     return;
   }
   $('#leavesBody').innerHTML = list.map(l=>{
@@ -1493,7 +1477,7 @@ async function logAudit(action, details){
 function renderAudit(){
   if(!$('#auditBody')) return;
   if(auditLog.length===0){
-    $('#auditBody').innerHTML = `<tr><td colspan="3" class="empty">لا توجد عمليات مسجلة بعد</td></tr>`;
+    $('#auditBody').innerHTML = loadingRow(3, 'لا توجد عمليات مسجلة بعد');
     return;
   }
   $('#auditBody').innerHTML = auditLog.map(a=>`
