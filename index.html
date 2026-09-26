@@ -1,75 +1,1740 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مهامي</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>حمام التلات | نظام إدارة الموظفين</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase (compat SDK — simplest to wire into the existing db.collection()/db.doc() calls below) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --maroon:#6E1F2A; --maroon-dark:#54171F; --maroon-light:#8C2E3A;
+  --white:#FFFFFF; --ink:#1E1B1C;
+  --bg:#F4F2F1; --panel:#FFFFFF; --line:#E4DFDD; --muted:#7A7473;
+  --ok:#2F7D4F; --warn:#B8862E; --danger:#B8402E;
+  --radius:14px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1B1516; --panel:#241C1D; --line:#3A2E2F; --ink:#F2ECEA; --muted:#B8ACA9;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1B1516; --panel:#241C1D; --line:#3A2E2F; --ink:#F2ECEA; --muted:#B8ACA9;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+*{box-sizing:border-box;}
+body{
+  margin:0; height:100%; background:var(--bg); color:var(--ink);
+  font-family:'IBM Plex Sans Arabic','Cairo',sans-serif;
+  display:flex; min-height:100vh;
+}
+h1,h2,h3,.brand{font-family:'Cairo',sans-serif;}
+::-webkit-scrollbar{height:8px; width:8px;}
+::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+
+/* layout */
+#sidebar{
+  width:230px; flex-shrink:0; background:var(--panel); border-left:1px solid var(--line);
+  display:flex; flex-direction:column; padding:20px 14px; gap:4px;
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+}
+#sidebar .brand{font-size:18px; font-weight:800; color:var(--maroon); padding:6px 8px 18px;}
+.nav-btn{
+  display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:10px;
+  border:none; background:transparent; color:var(--ink); font-size:14.5px; font-family:inherit;
+  cursor:pointer; text-align:right; width:100%; font-weight:600; transition:background .15s;
+}
+.nav-btn:hover{background:var(--bg);}
+.nav-btn.active{background:var(--maroon); color:#fff;}
+.nav-btn .ico{width:18px; text-align:center; opacity:.85;}
+
+#main{flex:1; min-width:0; display:flex; flex-direction:column;}
+#topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 22px; border-bottom:1px solid var(--line); background:var(--panel);
+  position:sticky; top:0; z-index:20;
+}
+#topbar h2{margin:0; font-size:17px; font-weight:800;}
+.status-pill{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); font-weight:600;}
+.dot{width:8px; height:8px; border-radius:50%; background:var(--ok);}
+.dot.syncing{background:var(--warn);}
+.dot.offline{background:var(--danger);}
+.icon-btn{background:none; border:1px solid var(--line); border-radius:10px; padding:8px 10px; cursor:pointer; color:var(--ink); font-size:15px;}
+
+#content{padding:20px 22px 90px; overflow-x:hidden;}
+.view{display:none;}
+.view.active{display:block;}
+
+/* cards */
+.grid{display:grid; gap:14px;}
+.grid.stats{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px;
+}
+.stat-card .num{font-size:26px; font-weight:800; font-family:'Cairo',sans-serif;}
+.stat-card .lbl{font-size:12.5px; color:var(--muted); margin-top:4px; font-weight:600;}
+.stat-card.accent{border-color:var(--maroon-light);}
+.stat-card.dim{opacity:.55;}
+.soon-tag{font-size:10.5px; background:var(--bg); color:var(--muted); padding:2px 7px; border-radius:20px; margin-inline-start:6px;}
+
+.section-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:26px 0 12px;}
+.section-head h3{margin:0; font-size:15.5px; font-weight:800;}
+
+.period-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+.period-btn{
+  border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:999px;
+  padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit;
+}
+.period-btn.active{background:var(--maroon); border-color:var(--maroon); color:#fff;}
+
+/* buttons */
+.btn{
+  border:none; border-radius:10px; padding:10px 16px; font-weight:700; font-size:13.5px;
+  cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:6px;
+}
+.btn-primary{background:var(--maroon); color:#fff;}
+.btn-primary:hover{background:var(--maroon-dark);}
+.btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+.btn-danger{background:transparent; color:var(--danger); border:1px solid var(--danger);}
+.btn-sm{padding:6px 10px; font-size:12.5px; border-radius:8px;}
+
+/* table */
+.table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius); background:var(--panel);}
+table{width:100%; border-collapse:collapse; min-width:640px; font-size:13.5px;}
+th,td{padding:11px 14px; text-align:right; white-space:nowrap;}
+thead th{background:var(--bg); color:var(--muted); font-weight:700; font-size:12.5px; position:sticky; top:0;}
+tbody tr{border-top:1px solid var(--line);}
+tbody tr:hover{background:var(--bg);}
+.badge{padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:700;}
+.badge.active{background:#E8F3EC; color:var(--ok);}
+.badge.leave{background:#FBF1E1; color:var(--warn);}
+.badge.stopped, .badge.resigned, .badge.ended{background:#FBEAE6; color:var(--danger);}
+.badge.in{background:#E8F3EC; color:var(--ok);}
+.badge.out{background:#F0ECEB; color:var(--muted);}
+.row-actions{display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;}
+.amt-pos{color:var(--ok); font-weight:700;}
+.amt-neg{color:var(--danger); font-weight:700;}
+.progress{background:var(--bg); border-radius:20px; height:7px; width:100px; overflow:hidden;}
+.progress > div{height:100%; background:var(--maroon);}
+.empty{padding:40px 20px; text-align:center; color:var(--muted); font-size:13.5px;}
+.search-bar{display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+.search-bar input, .search-bar select{
+  border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-size:13.5px;
+  font-family:inherit; background:var(--panel); color:var(--ink);
+}
+.search-bar input{flex:1; min-width:180px;}
+
+/* modal */
+.overlay{
+  position:fixed; inset:0; background:rgba(20,10,10,.45); display:none; align-items:center;
+  justify-content:center; z-index:100; padding:16px;
+}
+.overlay.show{display:flex;}
+.modal{
+  background:var(--panel); border-radius:16px; width:100%; max-width:560px; max-height:88vh;
+  overflow-y:auto; padding:22px; border:1px solid var(--line);
+}
+.modal h3{margin:0 0 16px; font-size:16.5px; font-weight:800;}
+.field{margin-bottom:12px;}
+.field label{display:block; font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:5px;}
+.field input, .field select, .field textarea{
+  width:100%; border:1px solid var(--line); border-radius:9px; padding:9px 11px; font-size:13.5px;
+  font-family:inherit; background:var(--bg); color:var(--ink);
+}
+.field-grid{display:grid; grid-template-columns:1fr 1fr; gap:0 12px;}
+.modal-actions{display:flex; gap:8px; justify-content:flex-start; margin-top:16px;}
+
+/* fab */
+#fab{
+  position:fixed; bottom:calc(24px + env(safe-area-inset-bottom,0px)); left:24px; z-index:50;
+  background:var(--maroon); color:#fff; border:none; border-radius:999px; padding:15px 20px;
+  font-weight:800; font-size:14px; box-shadow:0 8px 22px rgba(110,31,42,.35); cursor:pointer;
+  display:flex; align-items:center; gap:8px;
+}
+.chip-list{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 14px;}
+.chip{background:var(--bg); border:1px solid var(--line); border-radius:20px; padding:5px 10px 5px 6px; font-size:13px; display:flex; align-items:center; gap:6px;}
+.chip button{background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; line-height:1;}
+.chip-add{display:flex; gap:8px; margin-bottom:6px;}
+.chip-add input{flex:1;}
+.days-row{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 16px;}
+.day-toggle{border:1px solid var(--line); border-radius:10px; padding:8px 14px; cursor:pointer; font-size:13px; font-weight:600; background:var(--panel); color:var(--ink);}
+.day-toggle.on{background:var(--maroon); border-color:var(--maroon); color:#fff;}
+.settings-card{max-width:640px;}
+.settings-card h4{margin:22px 0 4px; font-size:14px; font-weight:800;}
+.settings-card h4:first-child{margin-top:0;}
+.soon-box{
+  border:1px dashed var(--line); border-radius:var(--radius); padding:30px; text-align:center; color:var(--muted);
+}
+.report-controls{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px;}
+.report-controls .field{margin-bottom:0;}
+.report-header{display:none;}
+#reportResults{display:none;}
+#reportResults.show{display:block;}
+.report-title-block{margin-bottom:14px;}
+.report-title-block h3{margin:0 0 4px; font-size:16px; font-weight:800;}
+.report-title-block .meta{color:var(--muted); font-size:12.5px;}
+.export-row{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0;}
+tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line);}
+@media print{
+  #sidebar, #topbar, #fab, .report-controls, .export-row, .section-head button{display:none !important;}
+  #content{padding:0;}
+  .view{display:none !important;}
+  .view.printing{display:block !important;}
+  .report-header{display:block; margin-bottom:14px;}
+  .report-header h2{margin:0 0 2px; font-size:17px;}
+  .report-header .sub{color:#555; font-size:12px;}
+  body{background:#fff; color:#000;}
+  .table-wrap{border:none;}
+  table{min-width:0;}
+}
+@media (max-width:760px){
+  #sidebar{
+    position:fixed; bottom:0; top:auto; width:100%; height:auto; flex-direction:row;
+    justify-content:space-around; border-top:1px solid var(--line); border-left:none; padding:8px 4px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px)); z-index:40;
+  }
+  #sidebar .brand{display:none;}
+  .nav-btn{flex-direction:column; font-size:10.5px; padding:6px 4px; gap:3px; flex:1;}
+  #main{padding-bottom:70px;}
+  #content{padding:16px 14px 100px;}
+  .field-grid{grid-template-columns:1fr;}
+  #fab{left:14px; bottom:calc(78px + env(safe-area-inset-bottom,0px));}
+}
+</style>
 </head>
 <body>
-  <header class="app-header">
-    <h1>مهامي</h1>
-    <p>مدير مهام بسيط بقاعدة بيانات خارجية</p>
-  </header>
 
-  <main class="container">
-    <section id="setup-notice" class="setup-notice hidden">
-      <h2>الموقع غير مهيّأ بعد</h2>
-      <ol>
-        <li>ضع إعدادات Firebase الخاصة بك في <code>config.js</code></li>
-        <li>افتح <strong>Firebase Console</strong> → Realtime Database → قواعد (Rules) وارمِ محتوى ملف <code>firebase.rules.json</code> ثم Publish</li>
-        <li>أعد رفع الموقع على GitHub Pages</li>
-      </ol>
-    </section>
+<nav id="sidebar">
+  <div class="brand">🕌 حمام التلات</div>
+  <button class="nav-btn active" data-view="dashboard"><span class="ico">📊</span> لوحة التحكم</button>
+  <button class="nav-btn" data-view="employees"><span class="ico">👥</span> الموظفون</button>
+  <button class="nav-btn" data-view="attendance"><span class="ico">🕐</span> الحضور والانصراف</button>
+  <button class="nav-btn" data-view="transactions"><span class="ico">💳</span> الحركات اليومية</button>
+  <button class="nav-btn" data-view="loans"><span class="ico">💰</span> السلف</button>
+  <button class="nav-btn" data-view="reports"><span class="ico">📑</span> التقارير</button>
+  <button class="nav-btn" data-view="leaves"><span class="ico">🗓️</span> الإجازات والأذونات</button>
+  <button class="nav-btn" data-view="audit"><span class="ico">📜</span> سجل العمليات</button>
+  <button class="nav-btn" data-view="settings"><span class="ico">⚙️</span> الإعدادات</button>
+  <button class="nav-btn" data-view="audit"><span class="ico">🧾</span> سجل العمليات</button>
+  <button class="nav-btn" data-view="backup"><span class="ico">🗄️</span> النسخ الاحتياطي</button>
+</nav>
 
-    <section class="task-form">
-      <h2>إضافة مهمة</h2>
-      <form id="task-form">
+<div id="main">
+  <div id="topbar">
+    <h2 id="topbarTitle">لوحة التحكم</h2>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="status-pill"><span class="dot" id="statusDot"></span><span id="statusText">جاري الاتصال…</span></div>
+      <button class="icon-btn" id="themeToggle" title="الوضع الليلي">🌙</button>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="period-row" id="periodRow"></div>
+
+      <div class="grid stats" id="statsGrid"></div>
+
+      <div class="section-head"><h3>حالة الموظفين الآن</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الموظف</th><th>الوظيفة</th><th>الحالة الآن</th><th>آخر حركة</th></tr></thead>
+          <tbody id="liveStatusBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMPLOYEES -->
+    <div class="view" id="view-employees">
+      <div class="section-head">
+        <h3>سجل الموظفين</h3>
+        <button class="btn btn-primary" id="addEmployeeBtn">+ إضافة موظف</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="empSearch" placeholder="بحث بالاسم، الكود، أو الهاتف…">
+        <select id="empStatusFilter">
+          <option value="">كل الحالات</option>
+          <option value="active">على رأس العمل</option>
+          <option value="leave">إجازة</option>
+          <option value="stopped">موقوف</option>
+          <option value="resigned">مستقيل</option>
+          <option value="ended">منتهي الخدمة</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>الكود</th><th>الاسم</th><th>الوظيفة</th><th>القسم</th><th>الهاتف</th>
+            <th>الراتب الأساسي</th><th>الحالة</th><th></th>
+          </tr></thead>
+          <tbody id="employeesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="view" id="view-attendance">
+      <div class="section-head"><h3>سجل اليوم</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الموظف</th><th>النوع</th><th>الوقت</th><th>ملاحظة</th></tr></thead>
+          <tbody id="attendanceBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DAILY TRANSACTIONS -->
+    <div class="view" id="view-transactions">
+      <div class="section-head">
+        <h3>الحركات اليومية</h3>
+        <button class="btn btn-primary" id="addTxnBtn">+ حركة جديدة</button>
+      </div>
+      <div class="search-bar">
+        <select id="txnEmpFilter"><option value="">كل الموظفين</option></select>
+        <select id="txnTypeFilter">
+          <option value="">كل الأنواع</option>
+          <option value="withdrawal">مسحوب</option>
+          <option value="deduction">خصم</option>
+          <option value="addition">إضافة</option>
+          <option value="bonus">مكافأة</option>
+          <option value="penalty">جزاء مالي</option>
+          <option value="custody">عهدة</option>
+          <option value="custody_return">رد عهدة</option>
+          <option value="settlement">تسوية</option>
+          <option value="refund">استرداد مبلغ</option>
+          <option value="other">أخرى</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>رقم مرجعي</th><th>الموظف</th><th>النوع</th><th>المبلغ</th><th>التاريخ</th><th>السبب</th><th></th></tr></thead>
+          <tbody id="transactionsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LOANS -->
+    <div class="view" id="view-loans">
+      <div class="section-head">
+        <h3>السلف</h3>
+        <button class="btn btn-primary" id="addLoanBtn">+ سلفة جديدة</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>الموظف</th><th>القيمة</th><th>الأقساط</th><th>المسدد</th><th>المتبقي</th>
+            <th>التقدم</th><th>الحالة</th><th></th>
+          </tr></thead>
+          <tbody id="loansBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="view" id="view-reports">
+      <div class="section-head"><h3>مركز التقارير</h3></div>
+
+      <div class="report-controls">
         <div class="field">
-          <label for="title">العنوان</label>
-          <input type="text" id="title" name="title" required placeholder="مثال: مراجعة تقرير الأسبوع">
+          <label>نوع التقرير</label>
+          <select id="rep_type">
+            <option value="attendance">تقرير الحضور والانصراف</option>
+            <option value="absence">تقرير الغياب</option>
+            <option value="loans">تقرير السلف</option>
+            <option value="withdrawals">تقرير المسحوبات</option>
+            <option value="deductions">تقرير الخصومات والجزاءات</option>
+            <option value="additions">تقرير الإضافات</option>
+            <option value="bonuses">تقرير المكافآت</option>
+            <option value="dailyTxns">تقرير الحركات اليومية (شامل)</option>
+            <option value="summary">التقرير الشامل للموظفين</option>
+            <option value="leavesReport">تقرير الإجازات والأذونات</option>
+          </select>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="priority">الأولوية</label>
-            <select id="priority" name="priority">
-              <option value="low">منخفضة</option>
-              <option value="medium" selected>متوسطة</option>
-              <option value="high">عالية</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="category">التصنيف</label>
-            <input type="text" id="category" name="category" placeholder="مثال: عمل">
-          </div>
-          <div class="field">
-            <label for="due_date">الموعد النهائي</label>
-            <input type="date" id="due_date" name="due_date">
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary">إضافة المهمة</button>
-      </form>
-    </section>
+        <div class="field"><label>من تاريخ</label><input type="date" id="rep_from"></div>
+        <div class="field"><label>إلى تاريخ</label><input type="date" id="rep_to"></div>
+        <div class="field"><label>الموظف</label><select id="rep_employee"><option value="">كل الموظفين</option></select></div>
+        <div class="field"><label>القسم</label><select id="rep_department"><option value="">كل الأقسام</option></select></div>
+      </div>
+      <div class="period-row" id="repPeriodRow"></div>
+      <button class="btn btn-primary" id="generateReportBtn">📑 إنشاء التقرير</button>
 
-    <section class="task-list">
-      <div class="list-header">
-        <h2>قائمة المهام</h2>
-        <div class="filters">
-          <button class="filter-btn active" data-filter="all">الكل</button>
-          <button class="filter-btn" data-filter="pending">قيد التنفيذ</button>
-          <button class="filter-btn" data-filter="completed">مكتملة</button>
+      <div id="reportResults">
+        <div class="report-header" id="reportPrintHeader"></div>
+        <div class="export-row">
+          <button class="btn btn-ghost btn-sm" id="printReportBtn">🖨️ طباعة / حفظ PDF</button>
+          <button class="btn btn-ghost btn-sm" id="excelReportBtn">📊 تصدير Excel</button>
+          <button class="btn btn-ghost btn-sm" id="csvReportBtn">📄 تصدير CSV</button>
+          <button class="btn btn-ghost btn-sm" id="waReportBtn">🟢 مشاركة واتساب</button>
+        </div>
+        <div class="report-title-block">
+          <h3 id="reportTitle"></h3>
+          <div class="meta" id="reportMeta"></div>
+        </div>
+        <div class="table-wrap">
+          <table id="reportTable">
+            <thead><tr id="reportHead"></tr></thead>
+            <tbody id="reportBody"></tbody>
+            <tfoot><tr id="reportFoot"></tr></tfoot>
+          </table>
         </div>
       </div>
-      <div id="task-list" class="tasks"></div>
-      <p id="empty-state" class="empty-state hidden">لا توجد مهام بعد.</p>
-    </section>
-  </main>
+    </div>
 
-  <div id="toast" class="toast hidden"></div>
+    <!-- LEAVES & PERMISSIONS -->
+    <div class="view" id="view-leaves">
+      <div class="section-head">
+        <h3>الإجازات والأذونات</h3>
+        <button class="btn btn-primary" id="addLeaveBtn">+ طلب جديد</button>
+      </div>
+      <div class="search-bar">
+        <select id="leaveStatusFilter">
+          <option value="">كل الحالات</option>
+          <option value="pending">قيد المراجعة</option>
+          <option value="approved">موافق عليه</option>
+          <option value="rejected">مرفوض</option>
+          <option value="cancelled">ملغي</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الموظف</th><th>النوع</th><th>من</th><th>إلى</th><th>الأيام</th><th>الحالة</th><th>السبب</th><th></th></tr></thead>
+          <tbody id="leavesBody"></tbody>
+        </table>
+      </div>
+    </div>
 
-  <script src="config.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-  <script src="app.js"></script>
+    <!-- AUDIT LOG -->
+    <div class="view" id="view-audit">
+      <div class="section-head"><h3>سجل العمليات الحساسة</h3></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>التاريخ والوقت</th><th>الإجراء</th><th>التفاصيل</th></tr></thead>
+          <tbody id="auditBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="view-settings">
+      <div class="section-head"><h3>إعدادات المنشأة والدوام</h3></div>
+      <div class="card settings-card">
+        <h4>اسم المنشأة</h4>
+        <div class="field"><input id="set_facilityName"></div>
+
+        <h4>الفروع</h4>
+        <div class="chip-add"><input id="newBranch" placeholder="اسم فرع جديد"><button class="btn btn-primary btn-sm" id="addBranchBtn">إضافة</button></div>
+        <div class="chip-list" id="branchChips"></div>
+
+        <h4>الأقسام</h4>
+        <div class="chip-add"><input id="newDept" placeholder="اسم قسم جديد"><button class="btn btn-primary btn-sm" id="addDeptBtn">إضافة</button></div>
+        <div class="chip-list" id="deptChips"></div>
+
+        <h4>الوظائف</h4>
+        <div class="chip-add"><input id="newJob" placeholder="اسم وظيفة جديدة"><button class="btn btn-primary btn-sm" id="addJobBtn">إضافة</button></div>
+        <div class="chip-list" id="jobChips"></div>
+
+        <h4>أيام العمل</h4>
+        <div class="days-row" id="workDaysRow"></div>
+
+        <h4>مواعيد الدوام</h4>
+        <div class="field-grid">
+          <div class="field"><label>بداية الدوام</label><input type="time" id="set_startTime"></div>
+          <div class="field"><label>نهاية الدوام</label><input type="time" id="set_endTime"></div>
+          <div class="field"><label>فترة السماح (دقائق)</label><input type="number" id="set_grace" min="0"></div>
+        </div>
+
+        <div class="modal-actions" style="margin-top:10px;">
+          <button class="btn btn-primary" id="saveSettingsBtn">حفظ الإعدادات</button>
+        </div>
+      </div>
+
+      <div class="section-head"><h3>النسخ الاحتياطي</h3></div>
+      <div class="card settings-card">
+        <p style="color:var(--muted); font-size:13px; margin-top:0;">تصدير كل بيانات النظام (الموظفون، الحضور، الحركات، السلف، الإجازات، الإعدادات) في ملف واحد، أو استعادتها من نسخة سابقة.</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="exportBackupBtn">⬇️ تصدير نسخة احتياطية</button>
+          <button class="btn btn-ghost" id="importBackupBtn">⬆️ استيراد نسخة احتياطية</button>
+          <input type="file" id="importBackupFile" accept="application/json" style="display:none;">
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT LOG -->
+    <div class="view" id="view-audit">
+      <div class="section-head"><h3>سجل العمليات</h3></div>
+      <div class="search-bar">
+        <select id="auditEntityFilter">
+          <option value="">كل الأنواع</option>
+          <option value="employee">الموظفون</option>
+          <option value="transaction">الحركات اليومية</option>
+          <option value="loan">السلف</option>
+          <option value="leave">الإجازات والأذونات</option>
+          <option value="settings">الإعدادات</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>الوقت</th><th>النوع</th><th>الوصف</th></tr></thead>
+          <tbody id="auditBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BACKUP -->
+    <div class="view" id="view-backup">
+      <div class="section-head"><h3>النسخ الاحتياطي</h3></div>
+      <div class="card settings-card">
+        <h4>تصدير نسخة احتياطية كاملة</h4>
+        <p style="color:var(--muted); font-size:13px; margin:0 0 10px;">يشمل: الموظفون، الحضور، الحركات اليومية، السلف، الإجازات، والإعدادات — في ملف JSON واحد.</p>
+        <button class="btn btn-primary" id="exportBackupBtn">⬇️ تصدير نسخة احتياطية</button>
+
+        <h4>استيراد / استعادة</h4>
+        <p style="color:var(--muted); font-size:13px; margin:0 0 10px;">استعادة نسخة سابقة ستضيف أو تحدّث السجلات بنفس المعرّفات — لن تُحذف بيانات موجودة حاليًا وليست في الملف.</p>
+        <input type="file" id="restoreFile" accept="application/json" style="margin-bottom:10px;">
+        <br>
+        <button class="btn btn-danger" id="restoreBackupBtn">⬆️ استعادة من ملف</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<button id="fab">🕐 حضور / انصراف</button>
+
+<datalist id="branchList"></datalist>
+<datalist id="deptList"></datalist>
+<datalist id="jobList"></datalist>
+
+<!-- Employee Modal -->
+<div class="overlay" id="empOverlay">
+  <div class="modal">
+    <h3 id="empModalTitle">إضافة موظف</h3>
+    <input type="hidden" id="empId">
+    <div class="field-grid">
+      <div class="field"><label>كود الموظف</label><input id="f_code" placeholder="EMP-001"></div>
+      <div class="field"><label>الاسم الكامل</label><input id="f_name" placeholder="أحمد محمد"></div>
+      <div class="field"><label>رقم الهاتف</label><input id="f_phone" placeholder="01xxxxxxxxx"></div>
+      <div class="field"><label>الرقم القومي</label><input id="f_nationalId"></div>
+      <div class="field"><label>الوظيفة</label><input id="f_job" list="jobList" placeholder="أمين صندوق"></div>
+      <div class="field"><label>القسم</label><input id="f_department" list="deptList" placeholder="مبيعات"></div>
+      <div class="field"><label>الفرع</label><input id="f_branch" list="branchList" placeholder="الفرع الرئيسي"></div>
+      <div class="field"><label>تاريخ التعيين</label><input type="date" id="f_hireDate"></div>
+      <div class="field"><label>الراتب الأساسي</label><input type="number" id="f_salary" placeholder="0"></div>
+      <div class="field"><label>نوع الدوام</label>
+        <select id="f_workType"><option value="fullTime">دوام كامل</option><option value="partTime">دوام جزئي</option><option value="shift">مناوبات</option></select>
+      </div>
+      <div class="field"><label>الحالة الوظيفية</label>
+        <select id="f_status">
+          <option value="active">على رأس العمل</option>
+          <option value="leave">إجازة</option>
+          <option value="stopped">موقوف</option>
+          <option value="resigned">مستقيل</option>
+          <option value="ended">منتهي الخدمة</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>ملاحظات</label><textarea id="f_notes" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="saveEmpBtn">حفظ</button>
+      <button class="btn btn-ghost" id="cancelEmpBtn">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance Modal -->
+<div class="overlay" id="attOverlay">
+  <div class="modal" style="max-width:420px;">
+    <h3>تسجيل حضور / انصراف</h3>
+    <div class="field">
+      <label>الموظف</label>
+      <select id="att_employee"></select>
+    </div>
+    <div class="field">
+      <label>نوع الحركة</label>
+      <select id="att_type"><option value="in">حضور</option><option value="out">انصراف</option></select>
+    </div>
+    <div class="field"><label>ملاحظة (اختياري)</label><input id="att_note"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="saveAttBtn">تسجيل</button>
+      <button class="btn btn-ghost" id="cancelAttBtn">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction Modal -->
+<div class="overlay" id="txnOverlay">
+  <div class="modal" style="max-width:440px;">
+    <h3>حركة يومية جديدة</h3>
+    <div class="field"><label>الموظف</label><select id="txn_employee"></select></div>
+    <div class="field">
+      <label>نوع الحركة</label>
+      <select id="txn_type">
+        <option value="withdrawal">مسحوب من الموظف</option>
+        <option value="deduction">خصم</option>
+        <option value="addition">إضافة</option>
+        <option value="bonus">مكافأة</option>
+        <option value="penalty">جزاء مالي</option>
+        <option value="custody">عهدة</option>
+        <option value="custody_return">رد عهدة</option>
+        <option value="settlement">تسوية</option>
+        <option value="refund">استرداد مبلغ</option>
+        <option value="other">حركة أخرى</option>
+      </select>
+    </div>
+    <div class="field" id="txn_dayTypeWrap" style="display:none;">
+      <label>احتساب الخصم بناءً على</label>
+      <select id="txn_dayType">
+        <option value="manual">مبلغ مباشر (اكتبه يدويًا)</option>
+        <option value="full">يوم كامل (من راتب الموظف)</option>
+        <option value="half">نصف يوم</option>
+        <option value="quarter">ربع يوم</option>
+      </select>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>المبلغ</label><input type="number" id="txn_amount" placeholder="0"></div>
+      <div class="field"><label>التاريخ</label><input type="date" id="txn_date"></div>
+    </div>
+    <div class="field"><label>السبب</label><input id="txn_reason"></div>
+    <div class="field"><label>ملاحظات</label><textarea id="txn_notes" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="saveTxnBtn">حفظ الحركة</button>
+      <button class="btn btn-ghost" id="cancelTxnBtn">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loan Modal -->
+<div class="overlay" id="loanOverlay">
+  <div class="modal" style="max-width:440px;">
+    <h3>سلفة جديدة</h3>
+    <div class="field"><label>الموظف</label><select id="loan_employee"></select></div>
+    <div class="field-grid">
+      <div class="field"><label>قيمة السلفة</label><input type="number" id="loan_amount" placeholder="0"></div>
+      <div class="field"><label>تاريخ الصرف</label><input type="date" id="loan_date"></div>
+      <div class="field"><label>عدد الأقساط</label><input type="number" id="loan_installments" value="1" min="1"></div>
+      <div class="field"><label>تاريخ بداية الخصم</label><input type="date" id="loan_startDate"></div>
+    </div>
+    <div class="field"><label>سبب السلفة</label><input id="loan_reason"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="saveLoanBtn">صرف السلفة</button>
+      <button class="btn btn-ghost" id="cancelLoanBtn">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loan Payment Modal -->
+<div class="overlay" id="loanPayOverlay">
+  <div class="modal" style="max-width:380px;">
+    <h3>تسجيل دفعة سلفة</h3>
+    <input type="hidden" id="pay_loanId">
+    <div class="field"><label>قيمة الدفعة</label><input type="number" id="pay_amount" placeholder="0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="savePayBtn">تسجيل الدفعة</button>
+      <button class="btn btn-ghost" id="cancelPayBtn">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Modal -->
+<div class="overlay" id="leaveOverlay">
+  <div class="modal" style="max-width:440px;">
+    <h3>طلب إجازة / إذن</h3>
+    <div class="field"><label>الموظف</label><select id="leave_employee"></select></div>
+    <div class="field">
+      <label>النوع</label>
+      <select id="leave_type">
+        <option value="annual">إجازة سنوية</option>
+        <option value="sick">إجازة مرضية</option>
+        <option value="emergency">إجازة طارئة</option>
+        <option value="unpaid">إجازة بدون أجر</option>
+        <option value="permission">إذن</option>
+        <option value="excused">غياب بعذر</option>
+        <option value="unexcused">غياب بدون عذر</option>
+      </select>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>من تاريخ</label><input type="date" id="leave_from"></div>
+      <div class="field"><label>إلى تاريخ</label><input type="date" id="leave_to"></div>
+    </div>
+    <div class="field"><label>السبب</label><input id="leave_reason"></div>
+    <div class="field"><label>ملاحظات</label><textarea id="leave_notes" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="saveLeaveBtn">إرسال الطلب</button>
+      <button class="btn btn-ghost" id="cancelLeaveBtn">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Statement Modal -->
+<div class="overlay" id="stmtOverlay">
+  <div class="modal" style="max-width:600px;">
+    <h3 id="stmtTitle">كشف حساب الموظف</h3>
+    <div class="table-wrap" style="margin-bottom:12px;">
+      <table>
+        <thead><tr><th>التاريخ</th><th>البيان</th><th>مبلغ</th></tr></thead>
+        <tbody id="stmtBody"></tbody>
+      </table>
+    </div>
+    <div class="card stat-card accent"><div class="num" id="stmtBalance">0</div><div class="lbl">الرصيد (له/عليه)</div></div>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn btn-ghost" id="closeStmtBtn">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let db = null, employees = [], attendance = [], transactions = [], loans = [], period = 'today';
+const $ = s => document.querySelector(s);
+
+const STATUS_LABELS = {active:'على رأس العمل', leave:'إجازة', stopped:'موقوف', resigned:'مستقيل', ended:'منتهي الخدمة'};
+const STATUS_BADGE = {active:'active', leave:'leave', stopped:'stopped', resigned:'resigned', ended:'ended'};
+const TXN_LABELS = {withdrawal:'مسحوب', deduction:'خصم', addition:'إضافة', bonus:'مكافأة', penalty:'جزاء مالي', custody:'عهدة', custody_return:'رد عهدة', settlement:'تسوية', refund:'استرداد مبلغ', other:'أخرى'};
+const TXN_NEGATIVE = ['deduction','penalty','custody_return','refund']; // هذه تُخصم من رصيد الموظف؛ الباقي (مسحوب/إضافة/مكافأة/عهدة) يُضاف — طبقًا لمعادلة كشف الحساب
+const LOAN_STATUS_LABELS = {new:'جديدة', ongoing:'جارية', completed:'مكتملة', stopped:'متوقفة', cancelled:'ملغاة'};
+const REPORT_PRESETS = {
+  attendance: {title:'تقرير الحضور والانصراف', mode:'attendance'},
+  absence: {title:'تقرير الغياب', mode:'attendance'},
+  loans: {title:'تقرير السلف', mode:'loans'},
+  withdrawals: {title:'تقرير المسحوبات', mode:'transactions', types:['withdrawal']},
+  deductions: {title:'تقرير الخصومات والجزاءات', mode:'transactions', types:['deduction','penalty']},
+  additions: {title:'تقرير الإضافات', mode:'transactions', types:['addition']},
+  bonuses: {title:'تقرير المكافآت', mode:'transactions', types:['bonus']},
+  dailyTxns: {title:'تقرير الحركات اليومية (شامل)', mode:'transactions', types:null},
+  summary: {title:'التقرير الشامل للموظفين', mode:'summary'},
+  leavesReport: {title:'تقرير الإجازات والأذونات', mode:'leaves'},
+};
+let currentReport = null;
+let leaves = [];
+const DEFAULT_SETTINGS = {facilityName:'حمام التلات', branches:['الفرع الرئيسي'], departments:[], jobs:[], workDays:[6,0,1,2,3,4], startTime:'09:00', endTime:'17:00', graceMinutes:10};
+let settings = {...DEFAULT_SETTINGS};
+let auditLog = [];
+const WEEKDAYS = [{idx:6,label:'السبت'},{idx:0,label:'الأحد'},{idx:1,label:'الإثنين'},{idx:2,label:'الثلاثاء'},{idx:3,label:'الأربعاء'},{idx:4,label:'الخميس'},{idx:5,label:'الجمعة'}];
+const LEAVE_TYPE_LABELS = {annual:'إجازة سنوية', sick:'إجازة مرضية', emergency:'إجازة طارئة', unpaid:'إجازة بدون أجر', permission:'إذن', excused:'غياب بعذر', unexcused:'غياب بدون عذر'};
+const LEAVE_STATUS_LABELS = {pending:'قيد المراجعة', approved:'موافق عليه', rejected:'مرفوض', cancelled:'ملغي'};
+const LEAVE_STATUS_BADGE = {pending:'leave', approved:'active', rejected:'stopped', cancelled:'ended'};
+const PERIODS = [
+  {id:'today', label:'اليوم'}, {id:'yesterday', label:'أمس'},
+  {id:'week', label:'هذا الأسبوع'}, {id:'lastWeek', label:'الأسبوع السابق'},
+  {id:'month', label:'هذا الشهر'}, {id:'lastMonth', label:'الشهر السابق'},
+];
+
+// =====================================================================
+// FIREBASE SETUP — عدّل القيم الخمسة دي بالقيم اللي هتاخدها من مشروعك
+// على console.firebase.google.com (Project settings → إضافة تطبيق ويب).
+// القيم دي مش سر — أمان البيانات بيتحدد من Firestore Rules مش من إخفائها.
+// =====================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCJW0TUPiNaqoQYXpYLrBGb7BrBgARWLN0",
+  authDomain: "hamam-b6b82.firebaseapp.com",
+  projectId: "hamam-b6b82",
+  storageBucket: "hamam-b6b82.firebasestorage.app",
+  messagingSenderId: "256963018998",
+  appId: "1:256963018998:web:ee4d4db6f6f92024496cd7",
+  measurementId: "G-SZS2SJWT1W"
+};
+
+let firestore = null;
+// غلاف بسيط بيخلي firestore يتكلم بنفس شكل db.collection()/db.doc() المستخدم في باقي الكود،
+// عشان مانحتاجش نعدل مئات الأسطر اللي مكتوبة تحت.
+function makeCollectionWrapper(name){
+  const colRef = firestore.collection(name);
+  return {
+    onSnapshot(cb){
+      return colRef.onSnapshot(snap=>{
+        cb(snap.docs.map(d=>({id:d.id, data:d.data()})));
+      }, err=> setStatus('offline','غير متصل'));
+    },
+    add(data){ return colRef.add(data); },
+    doc(id){
+      const ref = colRef.doc(id);
+      return { set:(data)=>ref.set(data), update:(data)=>ref.update(data), delete:()=>ref.delete(), get:()=>ref.get() };
+    }
+  };
+}
+function initDb(){
+  firebase.initializeApp(firebaseConfig);
+  firestore = firebase.firestore();
+  return { collection:(name)=>makeCollectionWrapper(name), doc:(path)=>{ const [c,id]=path.split('/'); return makeCollectionWrapper(c).doc(id); } };
+}
+
+// ---------- init ----------
+async function init(){
+  renderPeriodRow();
+  wireNav();
+  wireModals();
+  setStatus('offline', 'يعمل محليًا');
+  try{
+    db = initDb();
+  }catch(e){ db = null; }
+  if(db){
+    setStatus('syncing', 'جاري المزامنة…');
+    watchCollections();
+  } else {
+    setStatus('offline', 'يعمل محليًا (بدون مزامنة)');
+    renderSettingsForm();
+    renderAll();
+  }
+}
+
+function setStatus(kind, text){
+  $('#statusDot').className = 'dot ' + (kind==='ok'?'':kind);
+  $('#statusText').textContent = text;
+}
+
+function watchCollections(){
+  try{
+    db.collection('employees').onSnapshot(docs => {
+      employees = docs.map(d => ({id:d.id, ...d.data}));
+      setStatus('ok','متصل'); renderAll();
+    });
+    db.collection('attendance').onSnapshot(docs => {
+      attendance = docs.map(d => ({id:d.id, ...d.data}));
+      renderAll();
+    });
+    db.collection('transactions').onSnapshot(docs => {
+      transactions = docs.map(d => ({id:d.id, ...d.data}));
+      renderAll();
+    });
+    db.collection('loans').onSnapshot(docs => {
+      loans = docs.map(d => ({id:d.id, ...d.data}));
+      renderAll();
+    });
+    db.collection('leaves').onSnapshot(docs => {
+      leaves = docs.map(d => ({id:d.id, ...d.data}));
+      renderAll();
+    });
+    db.collection('settings').onSnapshot(docs => {
+      const doc = docs.find(d=>d.id==='general');
+      settings = {...DEFAULT_SETTINGS, ...(doc?doc.data:{})};
+      renderSettingsForm(); renderAll();
+    });
+    db.collection('auditLog').onSnapshot(docs => {
+      auditLog = docs.map(d=>({id:d.id, ...d.data})).sort((a,b)=>b.timestamp-a.timestamp);
+      renderAudit();
+    });
+  }catch(e){
+    setStatus('offline','غير متصل'); renderAll();
+  }
+}
+
+// ---------- nav ----------
+function wireNav(){
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const v = btn.dataset.view;
+      document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+      $('#view-'+v).classList.add('active');
+      $('#topbarTitle').textContent = btn.textContent.trim();
+    });
+  });
+  $('#themeToggle').addEventListener('click', ()=>{
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    $('#themeToggle').textContent = next === 'dark' ? '☀️' : '🌙';
+  });
+  $('#empSearch').addEventListener('input', renderEmployees);
+  $('#empStatusFilter').addEventListener('change', renderEmployees);
+}
+
+function renderPeriodRow(){
+  $('#periodRow').innerHTML = PERIODS.map(p=>
+    `<button class="period-btn ${p.id===period?'active':''}" data-p="${p.id}">${p.label}</button>`
+  ).join('');
+  document.querySelectorAll('.period-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      period = b.dataset.p;
+      document.querySelectorAll('.period-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      renderDashboard();
+    });
+  });
+}
+
+// ---------- date helpers ----------
+function rangeFor(p){
+  const now = new Date(); const start = new Date(now); const end = new Date(now);
+  start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+  const day = start.getDay(); // 0=Sun
+  if(p==='today'){}
+  else if(p==='yesterday'){ start.setDate(start.getDate()-1); end.setDate(end.getDate()-1); }
+  else if(p==='week'){ start.setDate(start.getDate()-day); }
+  else if(p==='lastWeek'){ start.setDate(start.getDate()-day-7); end.setDate(end.getDate()-day-1); }
+  else if(p==='month'){ start.setDate(1); }
+  else if(p==='lastMonth'){ start.setMonth(start.getMonth()-1, 1); end.setMonth(end.getMonth(),0); end.setHours(23,59,59,999); }
+  return {start, end};
+}
+
+// ---------- render ----------
+function renderAll(){
+  renderDashboard(); renderEmployees(); renderAttendance(); populateAttEmployeeSelect();
+  renderTransactions(); renderLoans(); populateEmployeeSelects(); renderLeaves(); renderAudit();
+}
+
+function populateEmployeeSelects(){
+  const opts = employees.map(e=>`<option value="${e.id}">${e.name} (${e.code||''})</option>`).join('');
+  ['txn_employee','loan_employee','leave_employee'].forEach(id=>{ if($('#'+id)) $('#'+id).innerHTML = opts || '<option value="">لا يوجد موظفون</option>'; });
+  if($('#txnEmpFilter')) $('#txnEmpFilter').innerHTML = '<option value="">كل الموظفين</option>' + opts;
+  if($('#rep_employee')) $('#rep_employee').innerHTML = '<option value="">كل الموظفين</option>' + opts;
+  if($('#rep_department')){
+    const depts = [...new Set(employees.map(e=>e.department).filter(Boolean))];
+    $('#rep_department').innerHTML = '<option value="">كل الأقسام</option>' + depts.map(d=>`<option value="${d}">${d}</option>`).join('');
+  }
+}
+
+function renderDashboard(){
+  const {start, end} = rangeFor(period);
+  const inRange = attendance.filter(a=>{
+    const t = new Date(a.timestamp); return t>=start && t<=end;
+  });
+  const activeEmployees = employees.filter(e=>e.status!=='resigned' && e.status!=='ended');
+  const attendedIds = new Set(inRange.filter(a=>a.type==='in').map(a=>a.employeeId));
+  // currently in = last record today per employee is 'in'
+  const lastByEmp = {};
+  attendance.forEach(a=>{
+    if(!lastByEmp[a.employeeId] || new Date(a.timestamp) > new Date(lastByEmp[a.employeeId].timestamp)) lastByEmp[a.employeeId] = a;
+  });
+  const currentlyIn = Object.values(lastByEmp).filter(a=>{
+    const t = new Date(a.timestamp);
+    return a.type==='in' && t.toDateString() === new Date().toDateString();
+  }).length;
+  const absentToday = Math.max(activeEmployees.length - attendedIds.size, 0);
+
+  const txnInRange = transactions.filter(t=>{ const d = new Date(t.date); return d>=start && d<=end; });
+  const sumBy = types => txnInRange.filter(t=>types.includes(t.type)).reduce((s,t)=>s+Number(t.amount||0),0);
+  const withdrawals = sumBy(['withdrawal']);
+  const deductions = sumBy(['deduction','penalty']);
+  const additions = sumBy(['addition','bonus']);
+  const net = additions - deductions - withdrawals;
+  const loansOutstanding = loans.filter(l=>l.status!=='completed' && l.status!=='cancelled')
+    .reduce((s,l)=>s+Math.max(Number(l.amount||0)-Number(l.paidAmount||0),0),0);
+  const todayDate = new Date();
+  const onLeaveToday = leaves.filter(l=> l.status==='approved' && l.type!=='permission' && new Date(l.from)<=todayDate && new Date(l.to)>=todayDate).length;
+  const permissionsToday = leaves.filter(l=> l.status==='approved' && l.type==='permission' && new Date(l.from)<=todayDate && new Date(l.to)>=todayDate).length;
+
+  const [gh, gm] = settings.startTime.split(':').map(Number);
+  const thresholdMinutes = gh*60 + gm + settings.graceMinutes;
+  const lateEmployeeIds = new Set();
+  attendance.filter(a=>a.type==='in' && new Date(a.timestamp).toDateString()===new Date().toDateString()).forEach(a=>{
+    const t = new Date(a.timestamp);
+    if(t.getHours()*60 + t.getMinutes() > thresholdMinutes) lateEmployeeIds.add(a.employeeId);
+  });
+
+  const cards = [
+    {num: employees.length, lbl:'إجمالي الموظفين', accent:true},
+    {num: attendedIds.size, lbl:'الحاضرون في الفترة'},
+    {num: absentToday, lbl:'الغائبون (تقديري)'},
+    {num: currentlyIn, lbl:'الموجودون حاليًا داخل العمل'},
+    {num: lateEmployeeIds.size, lbl:'المتأخرون اليوم'},
+    {num: onLeaveToday, lbl:'الإجازات اليوم'},
+    {num: permissionsToday, lbl:'الأذونات اليوم'},
+    {num: loansOutstanding.toLocaleString('ar-EG'), lbl:'إجمالي السلف القائمة'},
+    {num: withdrawals.toLocaleString('ar-EG'), lbl:'المسحوبات في الفترة'},
+    {num: deductions.toLocaleString('ar-EG'), lbl:'الخصومات في الفترة'},
+    {num: additions.toLocaleString('ar-EG'), lbl:'الإضافات في الفترة'},
+    {num: net.toLocaleString('ar-EG'), lbl:'صافي الحركات المالية', accent:true},
+  ];
+  $('#statsGrid').innerHTML = cards.map(c=>`
+    <div class="card stat-card ${c.accent?'accent':''} ${c.soon?'dim':''}">
+      <div class="num">${c.num}</div>
+      <div class="lbl">${c.lbl}${c.soon?'<span class="soon-tag">قريبًا</span>':''}</div>
+    </div>`).join('');
+
+  // live status table
+  if(employees.length===0){
+    $('#liveStatusBody').innerHTML = `<tr><td colspan="4" class="empty">لا يوجد موظفون بعد — ابدأ بإضافة أول موظف</td></tr>`;
+  } else {
+    $('#liveStatusBody').innerHTML = employees.map(e=>{
+      const last = lastByEmp[e.id];
+      const isToday = last && new Date(last.timestamp).toDateString()===new Date().toDateString();
+      const state = isToday ? (last.type==='in' ? 'داخل العمل' : 'خارج العمل') : 'لم يسجل اليوم';
+      const stateBadge = isToday ? (last.type==='in'?'in':'out') : 'out';
+      const lastText = last ? new Date(last.timestamp).toLocaleString('ar-EG',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '—';
+      return `<tr><td>${e.name||'—'}</td><td>${e.job||'—'}</td>
+        <td><span class="badge ${stateBadge}">${state}</span></td><td>${lastText}</td></tr>`;
+    }).join('');
+  }
+}
+
+function renderEmployees(){
+  const q = ($('#empSearch').value||'').trim().toLowerCase();
+  const statusF = $('#empStatusFilter').value;
+  let list = employees.filter(e=>{
+    const matchQ = !q || (e.name||'').toLowerCase().includes(q) || (e.code||'').toLowerCase().includes(q) || (e.phone||'').includes(q);
+    const matchS = !statusF || e.status===statusF;
+    return matchQ && matchS;
+  });
+  if(list.length===0){
+    $('#employeesBody').innerHTML = `<tr><td colspan="8" class="empty">لا توجد نتائج</td></tr>`;
+    return;
+  }
+  $('#employeesBody').innerHTML = list.map(e=>`
+    <tr>
+      <td>${e.code||'—'}</td>
+      <td>${e.name||'—'}</td>
+      <td>${e.job||'—'}</td>
+      <td>${e.department||'—'}</td>
+      <td>${e.phone||'—'}</td>
+      <td>${e.salary?Number(e.salary).toLocaleString('ar-EG'):'—'}</td>
+      <td><span class="badge ${STATUS_BADGE[e.status]||''}">${STATUS_LABELS[e.status]||e.status||'—'}</span></td>
+      <td class="row-actions">
+        <button class="btn btn-ghost btn-sm" data-stmt="${e.id}">كشف الحساب</button>
+        <button class="btn btn-ghost btn-sm" data-edit="${e.id}">تعديل</button>
+        <button class="btn btn-danger btn-sm" data-del="${e.id}">حذف</button>
+      </td>
+    </tr>`).join('');
+  document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEmpModal(b.dataset.edit)));
+  document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>deleteEmployee(b.dataset.del)));
+  document.querySelectorAll('[data-stmt]').forEach(b=>b.addEventListener('click',()=>openStatement(b.dataset.stmt)));
+}
+
+function renderAttendance(){
+  const today = new Date().toDateString();
+  const todays = attendance.filter(a=> new Date(a.timestamp).toDateString()===today)
+    .sort((a,b)=> new Date(b.timestamp)-new Date(a.timestamp));
+  if(todays.length===0){
+    $('#attendanceBody').innerHTML = `<tr><td colspan="4" class="empty">لا توجد حركات اليوم</td></tr>`;
+    return;
+  }
+  $('#attendanceBody').innerHTML = todays.map(a=>{
+    const emp = employees.find(e=>e.id===a.employeeId);
+    return `<tr>
+      <td>${emp?emp.name:'موظف محذوف'}</td>
+      <td><span class="badge ${a.type}">${a.type==='in'?'حضور':'انصراف'}</span></td>
+      <td>${new Date(a.timestamp).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td>${a.note||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTransactions(){
+  const empF = $('#txnEmpFilter') ? $('#txnEmpFilter').value : '';
+  const typeF = $('#txnTypeFilter') ? $('#txnTypeFilter').value : '';
+  let list = [...transactions].sort((a,b)=> new Date(b.date)-new Date(a.date) || (b.refNo||0)-(a.refNo||0));
+  list = list.filter(t=> (!empF || t.employeeId===empF) && (!typeF || t.type===typeF));
+  if(list.length===0){
+    $('#transactionsBody').innerHTML = `<tr><td colspan="7" class="empty">لا توجد حركات مسجلة</td></tr>`;
+    return;
+  }
+  $('#transactionsBody').innerHTML = list.map(t=>{
+    const emp = employees.find(e=>e.id===t.employeeId);
+    const neg = TXN_NEGATIVE.includes(t.type);
+    return `<tr>
+      <td>#${t.refNo||'—'}</td>
+      <td>${emp?emp.name:'—'}</td>
+      <td>${TXN_LABELS[t.type]||t.type}</td>
+      <td class="${neg?'amt-neg':'amt-pos'}">${neg?'-':'+'}${Number(t.amount||0).toLocaleString('ar-EG')}</td>
+      <td>${t.date||'—'}</td>
+      <td>${t.reason||'—'}</td>
+      <td class="row-actions"><button class="btn btn-danger btn-sm" data-txndel="${t.id}">حذف</button></td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('[data-txndel]').forEach(b=>b.addEventListener('click',()=>deleteTxn(b.dataset.txndel)));
+}
+
+function renderLoans(){
+  if(loans.length===0){
+    $('#loansBody').innerHTML = `<tr><td colspan="8" class="empty">لا توجد سلف مسجلة</td></tr>`;
+    return;
+  }
+  $('#loansBody').innerHTML = loans.map(l=>{
+    const emp = employees.find(e=>e.id===l.employeeId);
+    const paid = Number(l.paidAmount||0), amount = Number(l.amount||0);
+    const remaining = Math.max(amount-paid,0);
+    const pct = amount ? Math.min(100, Math.round(paid/amount*100)) : 0;
+    return `<tr>
+      <td>${emp?emp.name:'—'}</td>
+      <td>${amount.toLocaleString('ar-EG')}</td>
+      <td>${l.installments||1}</td>
+      <td class="amt-pos">${paid.toLocaleString('ar-EG')}</td>
+      <td class="amt-neg">${remaining.toLocaleString('ar-EG')}</td>
+      <td><div class="progress"><div style="width:${pct}%"></div></div></td>
+      <td><span class="badge ${l.status==='completed'?'active':(l.status==='cancelled'||l.status==='stopped'?'stopped':'leave')}">${LOAN_STATUS_LABELS[l.status]||l.status}</span></td>
+      <td class="row-actions">
+        ${remaining>0 && l.status!=='cancelled' ? `<button class="btn btn-ghost btn-sm" data-pay="${l.id}">تسديد</button>`:''}
+        <button class="btn btn-danger btn-sm" data-loandel="${l.id}">حذف</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('[data-pay]').forEach(b=>b.addEventListener('click',()=>openLoanPay(b.dataset.pay)));
+  document.querySelectorAll('[data-loandel]').forEach(b=>b.addEventListener('click',()=>deleteLoan(b.dataset.loandel)));
+}
+
+function renderLeaves(){
+  const statusF = $('#leaveStatusFilter') ? $('#leaveStatusFilter').value : '';
+  let list = [...leaves].sort((a,b)=> new Date(b.from)-new Date(a.from));
+  list = list.filter(l=> !statusF || l.status===statusF);
+  if(list.length===0){
+    $('#leavesBody').innerHTML = `<tr><td colspan="8" class="empty">لا توجد طلبات مسجلة</td></tr>`;
+    return;
+  }
+  $('#leavesBody').innerHTML = list.map(l=>{
+    const emp = employees.find(e=>e.id===l.employeeId);
+    const days = Math.round((new Date(l.to)-new Date(l.from))/86400000)+1;
+    const actions = l.status==='pending'
+      ? `<button class="btn btn-primary btn-sm" data-lapprove="${l.id}">قبول</button><button class="btn btn-danger btn-sm" data-lreject="${l.id}">رفض</button>`
+      : (l.status==='approved' ? `<button class="btn btn-ghost btn-sm" data-lcancel="${l.id}">إلغاء</button>` : '');
+    return `<tr>
+      <td>${emp?emp.name:'—'}</td>
+      <td>${LEAVE_TYPE_LABELS[l.type]||l.type}</td>
+      <td>${l.from}</td><td>${l.to}</td><td>${days}</td>
+      <td><span class="badge ${LEAVE_STATUS_BADGE[l.status]}">${LEAVE_STATUS_LABELS[l.status]}</span></td>
+      <td>${l.reason||'—'}</td>
+      <td class="row-actions">${actions}<button class="btn btn-danger btn-sm" data-ldel="${l.id}">حذف</button></td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('[data-lapprove]').forEach(b=>b.addEventListener('click',()=>setLeaveStatus(b.dataset.lapprove,'approved')));
+  document.querySelectorAll('[data-lreject]').forEach(b=>b.addEventListener('click',()=>setLeaveStatus(b.dataset.lreject,'rejected')));
+  document.querySelectorAll('[data-lcancel]').forEach(b=>b.addEventListener('click',()=>setLeaveStatus(b.dataset.lcancel,'cancelled')));
+  document.querySelectorAll('[data-ldel]').forEach(b=>b.addEventListener('click',()=>deleteLeave(b.dataset.ldel)));
+}
+
+function renderSettingsForm(){
+  if(!$('#set_facilityName')) return;
+  $('#set_facilityName').value = settings.facilityName;
+  $('#set_startTime').value = settings.startTime;
+  $('#set_endTime').value = settings.endTime;
+  $('#set_grace').value = settings.graceMinutes;
+  renderChips('branchChips', settings.branches, removeBranch);
+  renderChips('deptChips', settings.departments, removeDept);
+  renderChips('jobChips', settings.jobs, removeJob);
+  $('#workDaysRow').innerHTML = WEEKDAYS.map(d=>
+    `<button type="button" class="day-toggle ${settings.workDays.includes(d.idx)?'on':''}" data-day="${d.idx}">${d.label}</button>`
+  ).join('');
+  document.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click',()=>{
+    const idx = Number(b.dataset.day);
+    settings.workDays = settings.workDays.includes(idx) ? settings.workDays.filter(x=>x!==idx) : [...settings.workDays, idx];
+    renderSettingsForm();
+  }));
+  populateDatalists();
+}
+
+function renderChips(containerId, arr, removeFn){
+  $('#'+containerId).innerHTML = arr.map((v,i)=>`<span class="chip">${v}<button data-i="${i}">×</button></span>`).join('') || '<span style="color:var(--muted); font-size:12.5px;">لا يوجد بعد</span>';
+  $('#'+containerId).querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>removeFn(Number(b.dataset.i))));
+}
+function removeBranch(i){ settings.branches.splice(i,1); renderSettingsForm(); }
+function removeDept(i){ settings.departments.splice(i,1); renderSettingsForm(); }
+function removeJob(i){ settings.jobs.splice(i,1); renderSettingsForm(); }
+
+function populateDatalists(){
+  $('#branchList').innerHTML = settings.branches.map(b=>`<option value="${b}">`).join('');
+  $('#deptList').innerHTML = settings.departments.map(d=>`<option value="${d}">`).join('');
+  $('#jobList').innerHTML = settings.jobs.map(j=>`<option value="${j}">`).join('');
+}
+
+async function saveSettings(){
+  settings.facilityName = $('#set_facilityName').value.trim() || DEFAULT_SETTINGS.facilityName;
+  settings.startTime = $('#set_startTime').value || DEFAULT_SETTINGS.startTime;
+  settings.endTime = $('#set_endTime').value || DEFAULT_SETTINGS.endTime;
+  settings.graceMinutes = Number($('#set_grace').value)||0;
+  try{
+    if(db){ await db.doc('settings/general').set(settings); }
+    alert('تم حفظ الإعدادات');
+    logAudit('تحديث إعدادات النظام', `أيام العمل، مواعيد الدوام، الفروع/الأقسام/الوظائف`);
+  }catch(e){ alert('تعذر الحفظ — الإعدادات محفوظة محليًا فقط الآن'); }
+  renderAll();
+}
+
+function isWorkDay(date){ return settings.workDays.includes(date.getDay()); }
+function workDaysInRange(start, end){
+  let count=0; const d = new Date(start);
+  while(d<=end){ if(isWorkDay(d)) count++; d.setDate(d.getDate()+1); }
+  return Math.max(count,1);
+}
+
+function populateAttEmployeeSelect(){
+  $('#att_employee').innerHTML = employees.filter(e=>e.status==='active').map(e=>`<option value="${e.id}">${e.name} (${e.code||''})</option>`).join('')
+    || '<option value="">لا يوجد موظفون نشطون</option>';
+}
+
+// ---------- employee CRUD ----------
+function wireModals(){
+  $('#addEmployeeBtn').addEventListener('click', ()=>openEmpModal(null));
+  $('#cancelEmpBtn').addEventListener('click', ()=>$('#empOverlay').classList.remove('show'));
+  $('#saveEmpBtn').addEventListener('click', saveEmployee);
+  $('#fab').addEventListener('click', ()=>{ populateAttEmployeeSelect(); $('#attOverlay').classList.add('show'); });
+  $('#cancelAttBtn').addEventListener('click', ()=>$('#attOverlay').classList.remove('show'));
+  $('#saveAttBtn').addEventListener('click', saveAttendance);
+
+  $('#addTxnBtn').addEventListener('click', ()=>{ $('#txn_date').value = todayStr(); $('#txn_dayType').value='manual'; toggleDayTypeField(); $('#txnOverlay').classList.add('show'); });
+  $('#cancelTxnBtn').addEventListener('click', ()=>$('#txnOverlay').classList.remove('show'));
+  $('#saveTxnBtn').addEventListener('click', saveTransaction);
+  $('#txnEmpFilter').addEventListener('change', renderTransactions);
+  $('#txnTypeFilter').addEventListener('change', renderTransactions);
+  $('#txn_type').addEventListener('change', toggleDayTypeField);
+  $('#txn_dayType').addEventListener('change', recalcDayAmount);
+  $('#txn_employee').addEventListener('change', recalcDayAmount);
+
+  $('#addLoanBtn').addEventListener('click', ()=>{ $('#loan_date').value = todayStr(); $('#loan_startDate').value = todayStr(); $('#loanOverlay').classList.add('show'); });
+  $('#cancelLoanBtn').addEventListener('click', ()=>$('#loanOverlay').classList.remove('show'));
+  $('#saveLoanBtn').addEventListener('click', saveLoan);
+  $('#cancelPayBtn').addEventListener('click', ()=>$('#loanPayOverlay').classList.remove('show'));
+  $('#savePayBtn').addEventListener('click', saveLoanPayment);
+  $('#closeStmtBtn').addEventListener('click', ()=>$('#stmtOverlay').classList.remove('show'));
+
+  const REP_PERIODS = [{id:'today',label:'اليوم'},{id:'week',label:'هذا الأسبوع'},{id:'month',label:'هذا الشهر'},{id:'lastMonth',label:'الشهر السابق'},{id:'year',label:'هذه السنة'}];
+  $('#repPeriodRow').innerHTML = REP_PERIODS.map(p=>`<button type="button" class="period-btn" data-rp="${p.id}">${p.label}</button>`).join('');
+  document.querySelectorAll('[data-rp]').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-rp]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    let r;
+    if(b.dataset.rp==='year'){ const s=new Date(); s.setMonth(0,1); s.setHours(0,0,0,0); const e=new Date(); e.setHours(23,59,59,999); r={start:s,end:e}; }
+    else r = rangeFor(b.dataset.rp);
+    $('#rep_from').value = r.start.toISOString().slice(0,10);
+    $('#rep_to').value = r.end.toISOString().slice(0,10);
+  }));
+  $('#rep_from').value = rangeFor('month').start.toISOString().slice(0,10);
+  $('#rep_to').value = todayStr();
+
+  $('#generateReportBtn').addEventListener('click', generateReport);
+  $('#printReportBtn').addEventListener('click', printReport);
+  $('#excelReportBtn').addEventListener('click', exportReportExcel);
+  $('#csvReportBtn').addEventListener('click', exportReportCsv);
+  $('#waReportBtn').addEventListener('click', shareReportWhatsapp);
+
+  $('#addLeaveBtn').addEventListener('click', ()=>{ $('#leave_from').value = todayStr(); $('#leave_to').value = todayStr(); $('#leaveOverlay').classList.add('show'); });
+  $('#cancelLeaveBtn').addEventListener('click', ()=>$('#leaveOverlay').classList.remove('show'));
+  $('#saveLeaveBtn').addEventListener('click', saveLeave);
+  $('#leaveStatusFilter').addEventListener('change', renderLeaves);
+
+  $('#addBranchBtn').addEventListener('click', ()=>{ const v=$('#newBranch').value.trim(); if(v){ settings.branches.push(v); $('#newBranch').value=''; renderSettingsForm(); } });
+  $('#addDeptBtn').addEventListener('click', ()=>{ const v=$('#newDept').value.trim(); if(v){ settings.departments.push(v); $('#newDept').value=''; renderSettingsForm(); } });
+  $('#addJobBtn').addEventListener('click', ()=>{ const v=$('#newJob').value.trim(); if(v){ settings.jobs.push(v); $('#newJob').value=''; renderSettingsForm(); } });
+  $('#saveSettingsBtn').addEventListener('click', saveSettings);
+
+  $('#exportBackupBtn').addEventListener('click', exportBackup);
+  $('#importBackupBtn').addEventListener('click', ()=>$('#importBackupFile').click());
+  $('#importBackupFile').addEventListener('change', (e)=>{
+    if(e.target.files[0]) importBackupFromFile(e.target.files[0]);
+    e.target.value = '';
+  });
+}
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+function openEmpModal(id){
+  const e = id ? employees.find(x=>x.id===id) : {};
+  $('#empModalTitle').textContent = id ? 'تعديل بيانات موظف' : 'إضافة موظف';
+  $('#empId').value = id||'';
+  $('#f_code').value = e.code||'';
+  $('#f_name').value = e.name||'';
+  $('#f_phone').value = e.phone||'';
+  $('#f_nationalId').value = e.nationalId||'';
+  $('#f_job').value = e.job||'';
+  $('#f_department').value = e.department||'';
+  $('#f_branch').value = e.branch||'';
+  $('#f_hireDate').value = e.hireDate||'';
+  $('#f_salary').value = e.salary||'';
+  $('#f_workType').value = e.workType||'fullTime';
+  $('#f_status').value = e.status||'active';
+  $('#f_notes').value = e.notes||'';
+  $('#empOverlay').classList.add('show');
+}
+
+async function saveEmployee(){
+  const id = $('#empId').value;
+  const name = $('#f_name').value.trim();
+  if(!name){ alert('اسم الموظف مطلوب'); return; }
+  const data = {
+    code: $('#f_code').value.trim(),
+    name, phone: $('#f_phone').value.trim(),
+    nationalId: $('#f_nationalId').value.trim(),
+    job: $('#f_job').value.trim(),
+    department: $('#f_department').value.trim(),
+    branch: $('#f_branch').value.trim(),
+    hireDate: $('#f_hireDate').value,
+    salary: Number($('#f_salary').value)||0,
+    workType: $('#f_workType').value,
+    status: $('#f_status').value,
+    notes: $('#f_notes').value.trim(),
+    updatedAt: Date.now(),
+  };
+  // تحديث فوري على الشاشة + إغلاق النافذة، والحفظ الفعلي بيحصل في الخلفية
+  const tempId = 'temp_'+Date.now();
+  if(id){ const i = employees.findIndex(e=>e.id===id); if(i>-1) employees[i] = {...employees[i], ...data}; }
+  else{ employees.push({id:tempId, createdAt:Date.now(), ...data}); }
+  renderAll();
+  $('#empOverlay').classList.remove('show');
+
+  try{
+    if(db){
+      if(id){ await db.collection('employees').doc(id).update(data); }
+      else{ data.createdAt = Date.now(); await db.collection('employees').add(data); }
+    }
+    logAudit(id?'تعديل بيانات موظف':'إضافة موظف جديد', name);
+  }catch(err){
+    alert('تعذر حفظ التعديل على الخادم — تحقق من الاتصال بالإنترنت');
+    if(!id){ employees = employees.filter(e=>e.id!==tempId); renderAll(); }
+  }
+}
+
+async function deleteEmployee(id){
+  if(!confirm('هل تريد أرشفة/حذف هذا الموظف؟')) return;
+  const emp = employees.find(e=>e.id===id);
+  employees = employees.filter(e=>e.id!==id);
+  renderAll();
+  try{
+    if(db){ await db.collection('employees').doc(id).delete(); }
+    logAudit('حذف موظف', emp?emp.name:id);
+  }catch(e){ alert('تعذر الحذف من الخادم — تحقق من الاتصال'); }
+}
+
+// ---------- attendance ----------
+async function saveAttendance(){
+  const employeeId = $('#att_employee').value;
+  if(!employeeId){ alert('اختر موظف'); return; }
+  const data = {
+    employeeId, type: $('#att_type').value,
+    note: $('#att_note').value.trim(),
+    timestamp: Date.now(),
+  };
+  const tempId = 'temp_'+Date.now();
+  attendance.push({id:tempId, ...data});
+  renderAll();
+  $('#att_note').value='';
+  $('#attOverlay').classList.remove('show');
+  try{
+    if(db){ await db.collection('attendance').add(data); }
+  }catch(e){
+    alert('تعذر تسجيل الحركة على الخادم — تحقق من الاتصال');
+    attendance = attendance.filter(a=>a.id!==tempId); renderAll();
+  }
+}
+
+// ---------- daily transactions ----------
+function toggleDayTypeField(){
+  const show = $('#txn_type').value === 'deduction';
+  $('#txn_dayTypeWrap').style.display = show ? 'block' : 'none';
+  if(!show) $('#txn_dayType').value = 'manual';
+}
+function recalcDayAmount(){
+  const dt = $('#txn_dayType').value;
+  if(dt==='manual') return;
+  const emp = employees.find(e=>e.id===$('#txn_employee').value);
+  if(!emp || !emp.salary) return;
+  const daily = Number(emp.salary)/30;
+  const frac = dt==='full'?1 : dt==='half'?0.5 : 0.25;
+  $('#txn_amount').value = Math.round(daily*frac*100)/100;
+}
+
+async function saveTransaction(){
+  const employeeId = $('#txn_employee').value;
+  const amount = Number($('#txn_amount').value);
+  if(!employeeId){ alert('اختر موظف'); return; }
+  if(!amount || amount<=0){ alert('أدخل مبلغ صحيح'); return; }
+  const dayType = $('#txn_dayType') ? $('#txn_dayType').value : 'manual';
+  const dayTypeLabel = {full:'خصم يوم كامل', half:'خصم نصف يوم', quarter:'خصم ربع يوم'}[dayType];
+  const data = {
+    employeeId, type: $('#txn_type').value, amount,
+    date: $('#txn_date').value || todayStr(),
+    reason: $('#txn_reason').value.trim() || dayTypeLabel || '',
+    notes: $('#txn_notes').value.trim(),
+    dayFraction: dayType==='full'?1:dayType==='half'?0.5:dayType==='quarter'?0.25:null,
+    refNo: transactions.length+1,
+    createdAt: Date.now(),
+  };
+  const tempId = 'temp_'+Date.now();
+  transactions.push({id:tempId, ...data});
+  renderAll();
+  $('#txn_amount').value=''; $('#txn_reason').value=''; $('#txn_notes').value='';
+  $('#txnOverlay').classList.remove('show');
+
+  try{
+    if(db){ await db.collection('transactions').add(data); }
+    const emp = employees.find(e=>e.id===employeeId);
+    logAudit('حركة يومية: '+(TXN_LABELS[data.type]||data.type), `${emp?emp.name:''} — ${amount} ج.م`);
+  }catch(e){
+    alert('تعذر حفظ الحركة على الخادم — تحقق من الاتصال');
+    transactions = transactions.filter(t=>t.id!==tempId); renderAll();
+  }
+}
+
+async function deleteTxn(id){
+  if(!confirm('حذف هذه الحركة نهائيًا؟')) return;
+  const t = transactions.find(x=>x.id===id);
+  transactions = transactions.filter(t=>t.id!==id);
+  renderAll();
+  try{
+    if(db){ await db.collection('transactions').doc(id).delete(); }
+    if(t){ const emp = employees.find(e=>e.id===t.employeeId); logAudit('حذف حركة يومية', `${emp?emp.name:''} — ${TXN_LABELS[t.type]||t.type} — ${t.amount} ج.م`); }
+  }catch(e){ alert('تعذر الحذف من الخادم'); }
+}
+
+// ---------- loans ----------
+async function saveLoan(){
+  const employeeId = $('#loan_employee').value;
+  const amount = Number($('#loan_amount').value);
+  if(!employeeId){ alert('اختر موظف'); return; }
+  if(!amount || amount<=0){ alert('أدخل قيمة سلفة صحيحة'); return; }
+  const installments = Math.max(Number($('#loan_installments').value)||1, 1);
+  const data = {
+    employeeId, amount, installments,
+    installmentAmount: Math.round((amount/installments)*100)/100,
+    date: $('#loan_date').value || todayStr(),
+    startDate: $('#loan_startDate').value || todayStr(),
+    reason: $('#loan_reason').value.trim(),
+    status: 'new', paidAmount: 0,
+    createdAt: Date.now(),
+  };
+  const tempId = 'temp_'+Date.now();
+  loans.push({id:tempId, ...data});
+  renderAll();
+  $('#loan_amount').value=''; $('#loan_reason').value=''; $('#loan_installments').value=1;
+  $('#loanOverlay').classList.remove('show');
+
+  try{
+    if(db){ await db.collection('loans').add(data); }
+    const emp = employees.find(e=>e.id===employeeId);
+    logAudit('صرف سلفة جديدة', `${emp?emp.name:''} — ${amount} ج.م على ${installments} قسط`);
+  }catch(e){
+    alert('تعذر صرف السلفة على الخادم — تحقق من الاتصال');
+    loans = loans.filter(l=>l.id!==tempId); renderAll();
+  }
+}
+
+function openLoanPay(loanId){
+  $('#pay_loanId').value = loanId;
+  const l = loans.find(x=>x.id===loanId);
+  $('#pay_amount').value = l ? l.installmentAmount : '';
+  $('#loanPayOverlay').classList.add('show');
+}
+
+async function saveLoanPayment(){
+  const loanId = $('#pay_loanId').value;
+  const amount = Number($('#pay_amount').value);
+  const l = loans.find(x=>x.id===loanId);
+  if(!l || !amount || amount<=0){ alert('أدخل مبلغ صحيح'); return; }
+  const paidAmount = Number(l.paidAmount||0) + amount;
+  const status = paidAmount >= Number(l.amount) ? 'completed' : 'ongoing';
+  const i = loans.findIndex(x=>x.id===loanId);
+  const prevLoan = {...loans[i]};
+  loans[i] = {...loans[i], paidAmount, status};
+  const txnData = { employeeId:l.employeeId, type:'loan_payment', amount, date: todayStr(), reason:'تسديد قسط سلفة', refNo: transactions.length+1, createdAt: Date.now() };
+  const tempTxnId = 'temp_'+Date.now();
+  transactions.push({id:tempTxnId, ...txnData});
+  renderAll();
+  $('#loanPayOverlay').classList.remove('show');
+
+  try{
+    if(db){
+      await db.collection('loans').doc(loanId).update({paidAmount, status});
+      await db.collection('transactions').add(txnData);
+    }
+    const emp = employees.find(e=>e.id===l.employeeId);
+    logAudit('تسديد قسط سلفة', `${emp?emp.name:''} — ${amount} ج.م، المتبقي ${Math.max(Number(l.amount)-paidAmount,0)} ج.م`);
+  }catch(e){
+    alert('تعذر تسجيل الدفعة على الخادم — تحقق من الاتصال');
+    loans[i] = prevLoan; transactions = transactions.filter(t=>t.id!==tempTxnId); renderAll();
+  }
+}
+
+async function deleteLoan(id){
+  if(!confirm('حذف هذه السلفة نهائيًا؟')) return;
+  const l = loans.find(x=>x.id===id);
+  loans = loans.filter(l=>l.id!==id);
+  renderAll();
+  try{
+    if(db){ await db.collection('loans').doc(id).delete(); }
+    if(l){ const emp = employees.find(e=>e.id===l.employeeId); logAudit('حذف سلفة', `${emp?emp.name:''} — ${l.amount} ج.م`); }
+  }catch(e){ alert('تعذر الحذف من الخادم'); }
+}
+
+// ---------- employee statement ----------
+function openStatement(employeeId){
+  const emp = employees.find(e=>e.id===employeeId);
+  $('#stmtTitle').textContent = 'كشف حساب: ' + (emp?emp.name:'');
+  const empLoans = loans.filter(l=>l.employeeId===employeeId).map(l=>({
+    date:l.date, label:'سلفة صرفت', amount:Number(l.amount), sign:1
+  }));
+  const empTxns = transactions.filter(t=>t.employeeId===employeeId && t.type!=='loan_payment').map(t=>({
+    date:t.date, label:TXN_LABELS[t.type]||t.type, amount:Number(t.amount), sign: TXN_NEGATIVE.includes(t.type)?-1:1
+  }));
+  const empPayments = transactions.filter(t=>t.employeeId===employeeId && t.type==='loan_payment').map(t=>({
+    date:t.date, label:'تسديد سلفة', amount:Number(t.amount), sign:-1
+  }));
+  const rows = [...empLoans, ...empTxns, ...empPayments].sort((a,b)=> new Date(a.date)-new Date(b.date));
+  let balance = 0;
+  if(rows.length===0){
+    $('#stmtBody').innerHTML = `<tr><td colspan="3" class="empty">لا توجد حركات مسجلة لهذا الموظف</td></tr>`;
+  } else {
+    $('#stmtBody').innerHTML = rows.map(r=>{
+      balance += r.sign * r.amount;
+      return `<tr><td>${r.date||'—'}</td><td>${r.label}</td>
+        <td class="${r.sign<0?'amt-neg':'amt-pos'}">${r.sign<0?'-':'+'}${r.amount.toLocaleString('ar-EG')}</td></tr>`;
+    }).join('');
+  }
+  $('#stmtBalance').textContent = balance.toLocaleString('ar-EG');
+  $('#stmtOverlay').classList.add('show');
+}
+
+// ---------- audit log ----------
+async function logAudit(action, details){
+  const data = {action, details, timestamp: Date.now()};
+  try{
+    if(db){ await db.collection('auditLog').add(data); }
+    else{ auditLog.unshift({id:'local_'+Date.now(), ...data}); renderAudit(); }
+  }catch(e){ /* audit logging must never block the main action */ }
+}
+
+function renderAudit(){
+  if(!$('#auditBody')) return;
+  if(auditLog.length===0){
+    $('#auditBody').innerHTML = `<tr><td colspan="3" class="empty">لا توجد عمليات مسجلة بعد</td></tr>`;
+    return;
+  }
+  $('#auditBody').innerHTML = auditLog.map(a=>`
+    <tr><td>${new Date(a.timestamp).toLocaleString('ar-EG')}</td><td>${a.action}</td><td>${a.details||'—'}</td></tr>
+  `).join('');
+}
+
+// ---------- backup & restore ----------
+function exportBackup(){
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    employees, attendance, transactions, loans, leaves, settings,
+  };
+  saveFile('نسخة-احتياطية-حمام-التلات-'+todayStr()+'.json', JSON.stringify(payload, null, 2));
+  logAudit('تصدير نسخة احتياطية', `${employees.length} موظف، ${attendance.length} سجل حضور`);
+}
+
+async function importBackupFromFile(file){
+  const text = await file.text();
+  let data;
+  try{ data = JSON.parse(text); }catch(e){ alert('ملف غير صالح'); return; }
+  if(!confirm('سيتم دمج بيانات هذا الملف مع البيانات الحالية (السجلات بنفس المعرف تُستبدل، ولن يُحذف أي شيء غير موجود بالملف). متابعة؟')) return;
+  try{
+    if(db){
+      for(const key of ['employees','attendance','transactions','loans','leaves']){
+        for(const rec of (data[key]||[])){
+          const {id, ...rest} = rec;
+          if(id) await db.collection(key).doc(id).set(rest);
+          else await db.collection(key).add(rest);
+        }
+      }
+      if(data.settings) await db.doc('settings/general').set({...DEFAULT_SETTINGS, ...data.settings});
+    }
+    alert('تم استيراد النسخة الاحتياطية بنجاح');
+    logAudit('استيراد نسخة احتياطية', `من ملف بتاريخ ${data.exportedAt||'غير معروف'}`);
+  }catch(e){ alert('حدث خطأ أثناء الاستيراد'); }
+}
+
+// ---------- leaves & permissions ----------
+async function saveLeave(){
+  const employeeId = $('#leave_employee').value;
+  const from = $('#leave_from').value, to = $('#leave_to').value;
+  if(!employeeId){ alert('اختر موظف'); return; }
+  if(!from || !to || new Date(to) < new Date(from)){ alert('تحقق من التواريخ'); return; }
+  const data = {
+    employeeId, type: $('#leave_type').value, from, to,
+    reason: $('#leave_reason').value.trim(),
+    notes: $('#leave_notes').value.trim(),
+    status: 'pending', createdAt: Date.now(),
+  };
+  const tempId = 'temp_'+Date.now();
+  leaves.push({id:tempId, ...data});
+  renderAll();
+  $('#leave_reason').value=''; $('#leave_notes').value='';
+  $('#leaveOverlay').classList.remove('show');
+  try{
+    if(db){ await db.collection('leaves').add(data); }
+  }catch(e){
+    alert('تعذر إرسال الطلب على الخادم — تحقق من الاتصال');
+    leaves = leaves.filter(l=>l.id!==tempId); renderAll();
+  }
+}
+
+async function setLeaveStatus(id, status){
+  const i = leaves.findIndex(x=>x.id===id);
+  const prev = {...leaves[i]};
+  leaves[i] = {...leaves[i], status};
+  renderAll();
+  try{
+    if(db){ await db.collection('leaves').doc(id).update({status}); }
+    const emp = employees.find(e=>e.id===prev.employeeId);
+    logAudit('تحديث حالة طلب إجازة', `${emp?emp.name:''} — ${LEAVE_TYPE_LABELS[prev.type]} → ${LEAVE_STATUS_LABELS[status]}`);
+  }catch(e){ alert('تعذر تحديث الحالة على الخادم'); leaves[i] = prev; renderAll(); }
+}
+
+async function deleteLeave(id){
+  if(!confirm('حذف هذا الطلب نهائيًا؟')) return;
+  leaves = leaves.filter(l=>l.id!==id);
+  renderAll();
+  try{
+    if(db){ await db.collection('leaves').doc(id).delete(); }
+  }catch(e){ alert('تعذر الحذف من الخادم'); }
+}
+
+// ---------- reports ----------
+function daysAttendedInRange(employeeId, start, end){
+  const dates = new Set();
+  attendance.filter(a=>a.employeeId===employeeId && a.type==='in').forEach(a=>{
+    const t = new Date(a.timestamp);
+    if(t>=start && t<=end) dates.add(t.toDateString());
+  });
+  return dates.size;
+}
+function daysInRange(start,end){ return Math.max(Math.round((end-start)/86400000)+1, 1); }
+
+function generateReport(){
+  const presetKey = $('#rep_type').value;
+  const preset = REPORT_PRESETS[presetKey];
+  const from = $('#rep_from').value, to = $('#rep_to').value;
+  if(!from || !to){ alert('اختر الفترة من وإلى'); return; }
+  const start = new Date(from+'T00:00:00'), end = new Date(to+'T23:59:59');
+  const empF = $('#rep_employee').value, deptF = $('#rep_department').value;
+  const filteredEmployees = employees.filter(e=> (!empF || e.id===empF) && (!deptF || e.department===deptF));
+  const empIds = new Set(filteredEmployees.map(e=>e.id));
+
+  let headers = [], rows = [];
+
+  if(preset.mode === 'attendance'){
+    headers = ['الكود','الاسم','الوظيفة','القسم','أيام الحضور','الغياب التقديري'];
+    const totalDays = workDaysInRange(start,end);
+    rows = filteredEmployees.map(e=>{
+      const attended = daysAttendedInRange(e.id, start, end);
+      return [e.code||'—', e.name, e.job||'—', e.department||'—', attended, Math.max(totalDays-attended,0)];
+    });
+    if(presetKey==='absence') rows.sort((a,b)=> b[5]-a[5]);
+  }
+  else if(preset.mode === 'loans'){
+    headers = ['الموظف','القيمة','تاريخ الصرف','الأقساط','المسدد','المتبقي','الحالة'];
+    rows = loans.filter(l=> empIds.has(l.employeeId) && new Date(l.date)>=start && new Date(l.date)<=end)
+      .map(l=>{
+        const emp = employees.find(e=>e.id===l.employeeId);
+        return [emp?emp.name:'—', Number(l.amount), l.date, l.installments||1, Number(l.paidAmount||0), Math.max(Number(l.amount)-Number(l.paidAmount||0),0), LOAN_STATUS_LABELS[l.status]||l.status];
+      });
+  }
+  else if(preset.mode === 'transactions'){
+    headers = ['رقم مرجعي','الموظف','النوع','المبلغ','التاريخ','السبب'];
+    rows = transactions.filter(t=> empIds.has(t.employeeId) && new Date(t.date)>=start && new Date(t.date)<=end && (!preset.types || preset.types.includes(t.type)))
+      .sort((a,b)=> new Date(a.date)-new Date(b.date))
+      .map(t=>{
+        const emp = employees.find(e=>e.id===t.employeeId);
+        return ['#'+(t.refNo||'—'), emp?emp.name:'—', TXN_LABELS[t.type]||t.type, Number(t.amount), t.date, t.reason||'—'];
+      });
+  }
+  else if(preset.mode === 'leaves'){
+    headers = ['الموظف','النوع','من','إلى','الأيام','الحالة','السبب'];
+    rows = leaves.filter(l=> empIds.has(l.employeeId) && new Date(l.from)<=end && new Date(l.to)>=start)
+      .sort((a,b)=> new Date(a.from)-new Date(b.from))
+      .map(l=>{
+        const emp = employees.find(e=>e.id===l.employeeId);
+        const days = Math.round((new Date(l.to)-new Date(l.from))/86400000)+1;
+        return [emp?emp.name:'—', LEAVE_TYPE_LABELS[l.type]||l.type, l.from, l.to, days, LEAVE_STATUS_LABELS[l.status], l.reason||'—'];
+      });
+  }
+  else if(preset.mode === 'summary'){
+    headers = ['الكود','الاسم','القسم','أيام حضور','غياب تقديري','أيام إجازة معتمدة','سلف صادرة بالفترة','تسديدات سلف','سلف قائمة (إجمالي)','مسحوبات','خصومات وجزاءات','إضافات ومكافآت','الرصيد الصافي للفترة'];
+    const totalDays = workDaysInRange(start,end);
+    rows = filteredEmployees.map(e=>{
+      const attended = daysAttendedInRange(e.id, start, end);
+      const empTxns = transactions.filter(t=>t.employeeId===e.id && new Date(t.date)>=start && new Date(t.date)<=end);
+      const w = empTxns.filter(t=>t.type==='withdrawal').reduce((s,t)=>s+Number(t.amount||0),0);
+      const d = empTxns.filter(t=>['deduction','penalty'].includes(t.type)).reduce((s,t)=>s+Number(t.amount||0),0);
+      const a = empTxns.filter(t=>['addition','bonus'].includes(t.type)).reduce((s,t)=>s+Number(t.amount||0),0);
+      const repayments = empTxns.filter(t=>t.type==='loan_payment').reduce((s,t)=>s+Number(t.amount||0),0);
+      const empLoans = loans.filter(l=>l.employeeId===e.id);
+      const loansIssuedInRange = empLoans.filter(l=> new Date(l.date)>=start && new Date(l.date)<=end).reduce((s,l)=>s+Number(l.amount||0),0);
+      const outstanding = empLoans.filter(l=>l.status!=='completed' && l.status!=='cancelled').reduce((s,l)=>s+Math.max(Number(l.amount)-Number(l.paidAmount||0),0),0);
+      const leaveDays = leaves.filter(l=>l.employeeId===e.id && l.status==='approved' && l.type!=='permission' && new Date(l.from)<=end && new Date(l.to)>=start)
+        .reduce((s,l)=>{
+          const from = new Date(Math.max(new Date(l.from), start)), to = new Date(Math.min(new Date(l.to), end));
+          return s + Math.max(Math.round((to-from)/86400000)+1, 0);
+        },0);
+      // معادلة كشف الحساب: + السلف + المسحوبات - التسديدات - الخصومات + الإضافات
+      const netBalance = loansIssuedInRange + w - repayments - d + a;
+      return [e.code||'—', e.name, e.department||'—', attended, Math.max(totalDays-attended,0), leaveDays, loansIssuedInRange, repayments, outstanding, w, d, a, netBalance];
+    });
+  }
+
+  currentReport = {title: preset.title, headers, rows, from, to};
+  renderReportTable();
+}
+
+function renderReportTable(){
+  const {title, headers, rows, from, to} = currentReport;
+  $('#reportTitle').textContent = title;
+  $('#reportMeta').textContent = `${settings.facilityName} — الفترة: ${from} إلى ${to} — تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG')}`;
+  $('#reportPrintHeader').innerHTML = `<h2>${settings.facilityName}</h2><div class="sub">${title} — من ${from} إلى ${to} — استُخرج في ${new Date().toLocaleDateString('ar-EG')}</div>`;
+  $('#reportHead').innerHTML = headers.map(h=>`<th>${h}</th>`).join('');
+  if(rows.length===0){
+    $('#reportBody').innerHTML = `<tr><td colspan="${headers.length}" class="empty">لا توجد بيانات ضمن هذه الفلاتر</td></tr>`;
+    $('#reportFoot').innerHTML = '';
+  } else {
+    $('#reportBody').innerHTML = rows.map(r=>`<tr>${r.map(c=>`<td>${typeof c==='number'?c.toLocaleString('ar-EG'):c}</td>`).join('')}</tr>`).join('');
+    const totals = headers.map((h,i)=>{
+      if(i===0) return 'الإجمالي';
+      const allNum = rows.every(r=> typeof r[i]==='number');
+      if(!allNum) return '';
+      return rows.reduce((s,r)=>s+r[i],0).toLocaleString('ar-EG');
+    });
+    $('#reportFoot').innerHTML = totals.map(t=>`<td>${t}</td>`).join('');
+  }
+  $('#reportResults').classList.add('show');
+}
+
+function printReport(){
+  if(!currentReport) return;
+  document.getElementById('view-reports').classList.add('printing');
+  window.print();
+  setTimeout(()=>document.getElementById('view-reports').classList.remove('printing'), 500);
+}
+
+async function exportReportExcel(){
+  if(!currentReport || typeof XLSX==='undefined'){ alert('تعذر تجهيز ملف Excel'); return; }
+  const {title, headers, rows, from, to} = currentReport;
+  const ws = XLSX.utils.aoa_to_sheet([[settings.facilityName],[title],[`الفترة: ${from} إلى ${to}`],[],headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'تقرير');
+  const arr = XLSX.write(wb, {type:'array', bookType:'xlsx'});
+  const blob = new Blob([arr], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  await saveFile(title+'.xlsx', blob);
+}
+
+async function exportReportCsv(){
+  if(!currentReport) return;
+  const {title, headers, rows, from, to} = currentReport;
+  const csv = '\uFEFF' + [[settings.facilityName],[title],[`الفترة: ${from} إلى ${to}`],[],headers, ...rows]
+    .map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  await saveFile(title+'.csv', csv);
+}
+
+async function saveFile(filename, data){
+  try{
+    const blob = data instanceof Blob ? data : new Blob([data], {type: filename.endsWith('.json') ? 'application/json' : 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){ alert('تعذر حفظ الملف'); }
+}
+
+function shareReportWhatsapp(){
+  if(!currentReport) return;
+  const {title, headers, rows, from, to} = currentReport;
+  let text = `*${title}*\n${settings.facilityName}\nالفترة: ${from} إلى ${to}\n\n`;
+  const preview = rows.slice(0,15);
+  preview.forEach(r=>{ text += headers.map((h,i)=>`${h}: ${r[i]}`).join(' | ') + '\n'; });
+  if(rows.length>15) text += `\n… و${rows.length-15} سجل إضافي`;
+  window.open('https://wa.me/?text='+encodeURIComponent(text), '_blank');
+}
+
+init();
+</script>
 </body>
 </html>
