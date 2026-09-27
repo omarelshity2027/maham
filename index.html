@@ -48,6 +48,7 @@ h1,h2,h3,.brand{font-family:'Cairo',sans-serif;}
   position:sticky; top:0; height:100vh; overflow-y:auto;
 }
 #sidebar .brand{font-size:18px; font-weight:800; color:var(--maroon); padding:6px 8px 18px;}
+.nav-section-label{font-size:10.5px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; padding:14px 10px 4px;}
 .nav-btn{
   display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:10px;
   border:none; background:transparent; color:var(--ink); font-size:14.5px; font-family:inherit;
@@ -172,6 +173,19 @@ tbody tr:hover{background:var(--bg);}
 .settings-card{max-width:640px;}
 .settings-card h4{margin:22px 0 4px; font-size:14px; font-weight:800;}
 .settings-card h4:first-child{margin-top:0;}
+#toastContainer{
+  position:fixed; top:calc(16px + env(safe-area-inset-top,0px)); left:50%; transform:translateX(-50%);
+  z-index:500; display:flex; flex-direction:column; gap:8px; align-items:center;
+  pointer-events:none; width:calc(100% - 32px); max-width:420px;
+}
+.toast{
+  background:var(--panel); border:1px solid var(--line); border-inline-start:4px solid var(--danger);
+  color:var(--ink); padding:12px 16px; border-radius:10px; font-size:13.5px; font-weight:700;
+  box-shadow:0 10px 28px rgba(0,0,0,.3); opacity:0; transform:translateY(-10px);
+  transition:opacity .25s ease, transform .25s ease; pointer-events:auto; text-align:center; width:100%;
+}
+.toast.show{ opacity:1; transform:translateY(0); }
+.toast.toast-success{ border-inline-start-color:var(--ok); }
 .soon-box{
   border:1px dashed var(--line); border-radius:var(--radius); padding:30px; text-align:center; color:var(--muted);
 }
@@ -200,11 +214,13 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 @media (max-width:760px){
   #sidebar{
     position:fixed; bottom:0; top:auto; width:100%; height:auto; flex-direction:row;
-    justify-content:space-around; border-top:1px solid var(--line); border-left:none; padding:8px 4px;
+    justify-content:flex-start; border-top:1px solid var(--line); border-left:none; padding:8px 4px;
     padding-bottom:calc(8px + env(safe-area-inset-bottom,0px)); z-index:40;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
   }
-  #sidebar .brand{display:none;}
-  .nav-btn{flex-direction:column; font-size:10.5px; padding:6px 4px; gap:3px; flex:1;}
+  #sidebar::-webkit-scrollbar{display:none;}
+  #sidebar .brand, .nav-section-label{display:none;}
+  .nav-btn{flex-direction:column; font-size:10px; padding:6px 8px; gap:3px; flex:0 0 auto; min-width:64px; white-space:nowrap;}
   #main{padding-bottom:70px;}
   #content{padding:16px 14px 100px;}
   .field-grid{grid-template-columns:1fr;}
@@ -217,12 +233,18 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 <nav id="sidebar">
   <div class="brand">🕌 حمام التلات</div>
   <button class="nav-btn active" data-view="dashboard"><span class="ico">📊</span> لوحة التحكم</button>
+
+  <div class="nav-section-label">العمليات اليومية</div>
   <button class="nav-btn" data-view="employees"><span class="ico">👥</span> الموظفون</button>
   <button class="nav-btn" data-view="attendance"><span class="ico">🕐</span> الحضور والانصراف</button>
+  <button class="nav-btn" data-view="leaves"><span class="ico">🗓️</span> الإجازات والأذونات</button>
+
+  <div class="nav-section-label">الماليات</div>
   <button class="nav-btn" data-view="transactions"><span class="ico">💳</span> الحركات اليومية</button>
   <button class="nav-btn" data-view="loans"><span class="ico">💰</span> السلف</button>
+
+  <div class="nav-section-label">التحليل والإدارة</div>
   <button class="nav-btn" data-view="reports"><span class="ico">📑</span> التقارير</button>
-  <button class="nav-btn" data-view="leaves"><span class="ico">🗓️</span> الإجازات والأذونات</button>
   <button class="nav-btn" data-view="audit"><span class="ico">📜</span> سجل العمليات</button>
   <button class="nav-btn" data-view="settings"><span class="ico">⚙️</span> الإعدادات</button>
 </nav>
@@ -525,6 +547,18 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
       <label>نوع الحركة</label>
       <select id="att_type"><option value="in">حضور</option><option value="out">انصراف</option></select>
     </div>
+    <div class="field">
+      <label>الوقت (تقدر تعدّله بنفسك)</label>
+      <input type="datetime-local" id="att_datetime">
+    </div>
+    <div class="field" id="att_dayTypeWrap">
+      <label>مقدار يوم العمل</label>
+      <select id="att_dayType">
+        <option value="1">يوم كامل</option>
+        <option value="0.5">نصف يوم</option>
+        <option value="0.25">ربع يوم</option>
+      </select>
+    </div>
     <div class="field"><label>ملاحظة (اختياري)</label><input id="att_note"></div>
     <div class="modal-actions">
       <button class="btn btn-primary" id="saveAttBtn">تسجيل</button>
@@ -655,6 +689,24 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 </div>
 
 <script>
+function toast(message, type='error'){
+  let container = document.getElementById('toastContainer');
+  if(!container){
+    container = document.createElement('div');
+    container.id = 'toastContainer';
+    document.body.appendChild(container);
+  }
+  const el = document.createElement('div');
+  el.className = 'toast toast-'+type;
+  el.textContent = message;
+  container.appendChild(el);
+  requestAnimationFrame(()=> el.classList.add('show'));
+  setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=> el.remove(), 250);
+  }, 3800);
+}
+
 let db = null, employees = [], attendance = [], transactions = [], loans = [], period = 'today';
 const $ = s => document.querySelector(s);
 
@@ -709,6 +761,7 @@ let firestore = null;
 // غلاف بسيط بيخلي firestore يتكلم بنفس شكل db.collection()/db.doc() المستخدم في باقي الكود،
 // عشان مانحتاجش نعدل مئات الأسطر اللي مكتوبة تحت.
 let connectionConfirmed = false;
+let connectionErrorShown = false;
 function markConnected(){
   if(!connectionConfirmed){ connectionConfirmed = true; setStatus('ok','متصل'); }
 }
@@ -721,7 +774,9 @@ function makeCollectionWrapper(name){
         cb(snap.docs.map(d=>({id:d.id, data:d.data()})));
       }, err=>{
         console.error('Firestore error on '+name+':', err.code, err.message);
-        setStatus('offline', err.code==='permission-denied' ? 'مرفوض — تحقق من Firestore Rules' : 'تعذر الاتصال — راجع الإعدادات');
+        connectionErrorShown = true;
+        // بنعرض كود الخطأ الحقيقي على الشاشة نفسها عشان تقدر تبعتهولنا حتى من الموبايل
+        setStatus('offline', `تعذر الاتصال (${err.code}) — ${name}`);
       });
     },
     add(data){ return colRef.add(data); },
@@ -757,7 +812,9 @@ async function init(){
     setStatus('syncing', 'جاري المزامنة…');
     watchCollections();
     setTimeout(()=>{
-      if(!connectionConfirmed) setStatus('offline', 'تعذر الاتصال بعد محاولة — تحقق من Firestore Rules والدومين المسموح به');
+      if(!connectionConfirmed && !connectionErrorShown){
+        setStatus('offline', 'لا يوجد رد من الخادم إطلاقًا (لا اتصال ولا خطأ) — على الأغلب الشبكة نفسها بتحجب Google APIs (بعض شبكات المحمول في مصر بتعمل كده). جرّب واي فاي');
+      }
     }, 8000);
   } else {
     setStatus('offline', 'يعمل محليًا (بدون مزامنة)');
@@ -997,7 +1054,7 @@ function renderAttendance(){
     const emp = employees.find(e=>e.id===a.employeeId);
     return `<tr>
       <td>${emp?emp.name:'موظف محذوف'}</td>
-      <td><span class="badge ${a.type}">${a.type==='in'?'حضور':'انصراف'}</span></td>
+      <td><span class="badge ${a.type}">${a.type==='in'?'حضور':'انصراف'}</span> ${a.type==='in' && a.dayFraction && a.dayFraction<1 ? `<span class="soon-tag">${a.dayFraction===0.5?'نصف يوم':'ربع يوم'}</span>` : ''}</td>
       <td>${new Date(a.timestamp).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</td>
       <td>${a.note||'—'}</td>
     </tr>`;
@@ -1127,9 +1184,9 @@ async function saveSettings(){
   settings.graceMinutes = Number($('#set_grace').value)||0;
   try{
     if(db){ await db.doc('settings/general').set(settings); }
-    alert('تم حفظ الإعدادات');
+    toast('تم حفظ الإعدادات ✓', 'success');
     logAudit('تحديث إعدادات النظام', `أيام العمل، مواعيد الدوام، الفروع/الأقسام/الوظائف`);
-  }catch(e){ alert('تعذر الحفظ — الإعدادات محفوظة محليًا فقط الآن'); }
+  }catch(e){ toast('تعذر الحفظ — الإعدادات محفوظة محليًا فقط الآن'); }
   renderAll();
 }
 
@@ -1150,7 +1207,15 @@ function wireModals(){
   $('#addEmployeeBtn').addEventListener('click', ()=>openEmpModal(null));
   $('#cancelEmpBtn').addEventListener('click', ()=>$('#empOverlay').classList.remove('show'));
   $('#saveEmpBtn').addEventListener('click', saveEmployee);
-  $('#fab').addEventListener('click', ()=>{ populateAttEmployeeSelect(); $('#attOverlay').classList.add('show'); });
+  $('#fab').addEventListener('click', ()=>{
+    populateAttEmployeeSelect();
+    $('#att_type').value = 'in';
+    $('#att_datetime').value = nowForInput();
+    $('#att_dayType').value = '1';
+    toggleAttDayType();
+    $('#attOverlay').classList.add('show');
+  });
+  $('#att_type').addEventListener('change', toggleAttDayType);
   $('#cancelAttBtn').addEventListener('click', ()=>$('#attOverlay').classList.remove('show'));
   $('#saveAttBtn').addEventListener('click', saveAttendance);
 
@@ -1232,7 +1297,7 @@ function openEmpModal(id){
 async function saveEmployee(){
   const id = $('#empId').value;
   const name = $('#f_name').value.trim();
-  if(!name){ alert('اسم الموظف مطلوب'); return; }
+  if(!name){ toast('اسم الموظف مطلوب'); return; }
   const data = {
     code: $('#f_code').value.trim(),
     name, phone: $('#f_phone').value.trim(),
@@ -1261,7 +1326,7 @@ async function saveEmployee(){
     }
     logAudit(id?'تعديل بيانات موظف':'إضافة موظف جديد', name);
   }catch(err){
-    alert('تعذر حفظ التعديل على الخادم — تحقق من الاتصال بالإنترنت');
+    toast('تعذر حفظ التعديل على الخادم — تحقق من الاتصال بالإنترنت');
     if(!id){ employees = employees.filter(e=>e.id!==tempId); renderAll(); }
   }
 }
@@ -1274,17 +1339,31 @@ async function deleteEmployee(id){
   try{
     if(db){ await db.collection('employees').doc(id).delete(); }
     logAudit('حذف موظف', emp?emp.name:id);
-  }catch(e){ alert('تعذر الحذف من الخادم — تحقق من الاتصال'); }
+  }catch(e){ toast('تعذر الحذف من الخادم — تحقق من الاتصال'); }
 }
 
 // ---------- attendance ----------
+function nowForInput(){
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0,16);
+}
+function toggleAttDayType(){
+  $('#att_dayTypeWrap').style.display = $('#att_type').value==='in' ? 'block' : 'none';
+}
+
 async function saveAttendance(){
   const employeeId = $('#att_employee').value;
-  if(!employeeId){ alert('اختر موظف'); return; }
+  if(!employeeId){ toast('اختر موظف'); return; }
+  const type = $('#att_type').value;
+  const dayFraction = type==='in' ? Number($('#att_dayType').value) : null;
+  const dtVal = $('#att_datetime').value;
+  const timestamp = dtVal ? new Date(dtVal).getTime() : Date.now();
   const data = {
-    employeeId, type: $('#att_type').value,
+    employeeId, type,
     note: $('#att_note').value.trim(),
-    timestamp: Date.now(),
+    timestamp,
+    dayFraction,
   };
   const tempId = 'temp_'+Date.now();
   attendance.push({id:tempId, ...data});
@@ -1293,8 +1372,27 @@ async function saveAttendance(){
   $('#attOverlay').classList.remove('show');
   try{
     if(db){ await db.collection('attendance').add(data); }
+    // لو حضور جزئي (نص/ربع يوم)، يتسجل خصم تلقائي على الفرق من راتب اليوم
+    if(type==='in' && dayFraction && dayFraction < 1){
+      const emp = employees.find(e=>e.id===employeeId);
+      if(emp && emp.salary){
+        const missing = 1 - dayFraction;
+        const amount = Math.round((Number(emp.salary)/30) * missing * 100)/100;
+        const dayLabel = dayFraction===0.5 ? 'نصف يوم' : 'ربع يوم';
+        const txnData = {
+          employeeId, type:'deduction', amount,
+          date: new Date(timestamp).toISOString().slice(0,10),
+          reason: `خصم تلقائي — حضور ${dayLabel} بتاريخ ${new Date(timestamp).toLocaleDateString('ar-EG')}`,
+          notes: '', dayFraction: missing, refNo: transactions.length+1, createdAt: Date.now(),
+        };
+        transactions.push({id:'temp_'+Date.now(), ...txnData});
+        renderAll();
+        if(db){ await db.collection('transactions').add(txnData); }
+        logAudit('خصم تلقائي من الحضور', `${emp.name} — ${dayLabel} — ${amount} ج.م`);
+      }
+    }
   }catch(e){
-    alert('تعذر تسجيل الحركة على الخادم — تحقق من الاتصال');
+    toast('تعذر تسجيل الحركة على الخادم — تحقق من الاتصال');
     attendance = attendance.filter(a=>a.id!==tempId); renderAll();
   }
 }
@@ -1318,8 +1416,8 @@ function recalcDayAmount(){
 async function saveTransaction(){
   const employeeId = $('#txn_employee').value;
   const amount = Number($('#txn_amount').value);
-  if(!employeeId){ alert('اختر موظف'); return; }
-  if(!amount || amount<=0){ alert('أدخل مبلغ صحيح'); return; }
+  if(!employeeId){ toast('اختر موظف'); return; }
+  if(!amount || amount<=0){ toast('أدخل مبلغ صحيح'); return; }
   const dayType = $('#txn_dayType') ? $('#txn_dayType').value : 'manual';
   const dayTypeLabel = {full:'خصم يوم كامل', half:'خصم نصف يوم', quarter:'خصم ربع يوم'}[dayType];
   const data = {
@@ -1342,7 +1440,7 @@ async function saveTransaction(){
     const emp = employees.find(e=>e.id===employeeId);
     logAudit('حركة يومية: '+(TXN_LABELS[data.type]||data.type), `${emp?emp.name:''} — ${amount} ج.م`);
   }catch(e){
-    alert('تعذر حفظ الحركة على الخادم — تحقق من الاتصال');
+    toast('تعذر حفظ الحركة على الخادم — تحقق من الاتصال');
     transactions = transactions.filter(t=>t.id!==tempId); renderAll();
   }
 }
@@ -1355,15 +1453,15 @@ async function deleteTxn(id){
   try{
     if(db){ await db.collection('transactions').doc(id).delete(); }
     if(t){ const emp = employees.find(e=>e.id===t.employeeId); logAudit('حذف حركة يومية', `${emp?emp.name:''} — ${TXN_LABELS[t.type]||t.type} — ${t.amount} ج.م`); }
-  }catch(e){ alert('تعذر الحذف من الخادم'); }
+  }catch(e){ toast('تعذر الحذف من الخادم'); }
 }
 
 // ---------- loans ----------
 async function saveLoan(){
   const employeeId = $('#loan_employee').value;
   const amount = Number($('#loan_amount').value);
-  if(!employeeId){ alert('اختر موظف'); return; }
-  if(!amount || amount<=0){ alert('أدخل قيمة سلفة صحيحة'); return; }
+  if(!employeeId){ toast('اختر موظف'); return; }
+  if(!amount || amount<=0){ toast('أدخل قيمة سلفة صحيحة'); return; }
   const installments = Math.max(Number($('#loan_installments').value)||1, 1);
   const data = {
     employeeId, amount, installments,
@@ -1385,7 +1483,7 @@ async function saveLoan(){
     const emp = employees.find(e=>e.id===employeeId);
     logAudit('صرف سلفة جديدة', `${emp?emp.name:''} — ${amount} ج.م على ${installments} قسط`);
   }catch(e){
-    alert('تعذر صرف السلفة على الخادم — تحقق من الاتصال');
+    toast('تعذر صرف السلفة على الخادم — تحقق من الاتصال');
     loans = loans.filter(l=>l.id!==tempId); renderAll();
   }
 }
@@ -1401,7 +1499,7 @@ async function saveLoanPayment(){
   const loanId = $('#pay_loanId').value;
   const amount = Number($('#pay_amount').value);
   const l = loans.find(x=>x.id===loanId);
-  if(!l || !amount || amount<=0){ alert('أدخل مبلغ صحيح'); return; }
+  if(!l || !amount || amount<=0){ toast('أدخل مبلغ صحيح'); return; }
   const paidAmount = Number(l.paidAmount||0) + amount;
   const status = paidAmount >= Number(l.amount) ? 'completed' : 'ongoing';
   const i = loans.findIndex(x=>x.id===loanId);
@@ -1421,7 +1519,7 @@ async function saveLoanPayment(){
     const emp = employees.find(e=>e.id===l.employeeId);
     logAudit('تسديد قسط سلفة', `${emp?emp.name:''} — ${amount} ج.م، المتبقي ${Math.max(Number(l.amount)-paidAmount,0)} ج.م`);
   }catch(e){
-    alert('تعذر تسجيل الدفعة على الخادم — تحقق من الاتصال');
+    toast('تعذر تسجيل الدفعة على الخادم — تحقق من الاتصال');
     loans[i] = prevLoan; transactions = transactions.filter(t=>t.id!==tempTxnId); renderAll();
   }
 }
@@ -1434,7 +1532,7 @@ async function deleteLoan(id){
   try{
     if(db){ await db.collection('loans').doc(id).delete(); }
     if(l){ const emp = employees.find(e=>e.id===l.employeeId); logAudit('حذف سلفة', `${emp?emp.name:''} — ${l.amount} ج.م`); }
-  }catch(e){ alert('تعذر الحذف من الخادم'); }
+  }catch(e){ toast('تعذر الحذف من الخادم'); }
 }
 
 // ---------- employee statement ----------
@@ -1498,7 +1596,7 @@ function exportBackup(){
 async function importBackupFromFile(file){
   const text = await file.text();
   let data;
-  try{ data = JSON.parse(text); }catch(e){ alert('ملف غير صالح'); return; }
+  try{ data = JSON.parse(text); }catch(e){ toast('ملف غير صالح'); return; }
   if(!confirm('سيتم دمج بيانات هذا الملف مع البيانات الحالية (السجلات بنفس المعرف تُستبدل، ولن يُحذف أي شيء غير موجود بالملف). متابعة؟')) return;
   try{
     if(db){
@@ -1511,17 +1609,17 @@ async function importBackupFromFile(file){
       }
       if(data.settings) await db.doc('settings/general').set({...DEFAULT_SETTINGS, ...data.settings});
     }
-    alert('تم استيراد النسخة الاحتياطية بنجاح');
+    toast('تم استيراد النسخة الاحتياطية بنجاح ✓', 'success');
     logAudit('استيراد نسخة احتياطية', `من ملف بتاريخ ${data.exportedAt||'غير معروف'}`);
-  }catch(e){ alert('حدث خطأ أثناء الاستيراد'); }
+  }catch(e){ toast('حدث خطأ أثناء الاستيراد'); }
 }
 
 // ---------- leaves & permissions ----------
 async function saveLeave(){
   const employeeId = $('#leave_employee').value;
   const from = $('#leave_from').value, to = $('#leave_to').value;
-  if(!employeeId){ alert('اختر موظف'); return; }
-  if(!from || !to || new Date(to) < new Date(from)){ alert('تحقق من التواريخ'); return; }
+  if(!employeeId){ toast('اختر موظف'); return; }
+  if(!from || !to || new Date(to) < new Date(from)){ toast('تحقق من التواريخ'); return; }
   const data = {
     employeeId, type: $('#leave_type').value, from, to,
     reason: $('#leave_reason').value.trim(),
@@ -1536,7 +1634,7 @@ async function saveLeave(){
   try{
     if(db){ await db.collection('leaves').add(data); }
   }catch(e){
-    alert('تعذر إرسال الطلب على الخادم — تحقق من الاتصال');
+    toast('تعذر إرسال الطلب على الخادم — تحقق من الاتصال');
     leaves = leaves.filter(l=>l.id!==tempId); renderAll();
   }
 }
@@ -1550,7 +1648,7 @@ async function setLeaveStatus(id, status){
     if(db){ await db.collection('leaves').doc(id).update({status}); }
     const emp = employees.find(e=>e.id===prev.employeeId);
     logAudit('تحديث حالة طلب إجازة', `${emp?emp.name:''} — ${LEAVE_TYPE_LABELS[prev.type]} → ${LEAVE_STATUS_LABELS[status]}`);
-  }catch(e){ alert('تعذر تحديث الحالة على الخادم'); leaves[i] = prev; renderAll(); }
+  }catch(e){ toast('تعذر تحديث الحالة على الخادم'); leaves[i] = prev; renderAll(); }
 }
 
 async function deleteLeave(id){
@@ -1559,17 +1657,24 @@ async function deleteLeave(id){
   renderAll();
   try{
     if(db){ await db.collection('leaves').doc(id).delete(); }
-  }catch(e){ alert('تعذر الحذف من الخادم'); }
+  }catch(e){ toast('تعذر الحذف من الخادم'); }
 }
 
 // ---------- reports ----------
 function daysAttendedInRange(employeeId, start, end){
-  const dates = new Set();
+  // بيجمع مقدار يوم العمل الفعلي (1 / 0.5 / 0.25) لكل يوم — مش عدد الأيام بس —
+  // عشان يطلع رقم دقيق تقدر تحسب بيه المستحقات المالية آخر الشهر
+  const byDate = {};
   attendance.filter(a=>a.employeeId===employeeId && a.type==='in').forEach(a=>{
     const t = new Date(a.timestamp);
-    if(t>=start && t<=end) dates.add(t.toDateString());
+    if(t>=start && t<=end){
+      const key = t.toDateString();
+      const frac = (a.dayFraction===undefined || a.dayFraction===null) ? 1 : Number(a.dayFraction);
+      // لو فيه أكتر من تسجيل حضور في نفس اليوم، ياخد أكبر قيمة (يوم كامل بيغلب نص يوم مثلاً)
+      byDate[key] = Math.max(byDate[key]||0, frac);
+    }
   });
-  return dates.size;
+  return Object.values(byDate).reduce((s,v)=>s+v, 0);
 }
 function daysInRange(start,end){ return Math.max(Math.round((end-start)/86400000)+1, 1); }
 
@@ -1577,7 +1682,7 @@ function generateReport(){
   const presetKey = $('#rep_type').value;
   const preset = REPORT_PRESETS[presetKey];
   const from = $('#rep_from').value, to = $('#rep_to').value;
-  if(!from || !to){ alert('اختر الفترة من وإلى'); return; }
+  if(!from || !to){ toast('اختر الفترة من وإلى'); return; }
   const start = new Date(from+'T00:00:00'), end = new Date(to+'T23:59:59');
   const empF = $('#rep_employee').value, deptF = $('#rep_department').value;
   const filteredEmployees = employees.filter(e=> (!empF || e.id===empF) && (!deptF || e.department===deptF));
@@ -1679,7 +1784,7 @@ function printReport(){
 }
 
 async function exportReportExcel(){
-  if(!currentReport || typeof XLSX==='undefined'){ alert('تعذر تجهيز ملف Excel'); return; }
+  if(!currentReport || typeof XLSX==='undefined'){ toast('تعذر تجهيز ملف Excel'); return; }
   const {title, headers, rows, from, to} = currentReport;
   const ws = XLSX.utils.aoa_to_sheet([[settings.facilityName],[title],[`الفترة: ${from} إلى ${to}`],[],headers, ...rows]);
   const wb = XLSX.utils.book_new();
@@ -1705,7 +1810,7 @@ async function saveFile(filename, data){
     a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }catch(e){ alert('تعذر حفظ الملف'); }
+  }catch(e){ toast('تعذر حفظ الملف'); }
 }
 
 function shareReportWhatsapp(){
