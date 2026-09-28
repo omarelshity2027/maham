@@ -211,27 +211,80 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
   .table-wrap{border:none;}
   table{min-width:0;}
 }
+.meta{color:var(--muted); font-size:12.5px; margin-top:2px;}
+.hint{font-size:12.5px; color:var(--muted); margin:6px 0 10px; line-height:1.6;}
+.link{background:none; border:none; padding:0; font:inherit; font-weight:800; color:var(--ink); text-decoration:underline dotted; cursor:pointer; text-align:right;}
+.time-row{display:flex; gap:6px; align-items:center;}
+.time-row input{flex:1; min-width:0;}
+tr.clickable{cursor:pointer;}
+table.compact{min-width:0;}
+table.compact th, table.compact td{padding:9px 8px; font-size:13px; white-space:normal;}
+.tag-warn{background:#FBF1E1 !important; color:var(--warn) !important;}
+.att-nav{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+.att-nav input[type=date], .month-nav{font-family:inherit;}
+.att-nav input[type=date]{border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:var(--panel); color:var(--ink); font-size:13.5px;}
+.month-nav{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0;}
+.month-nav strong{font-size:15px; font-weight:800; min-width:110px; text-align:center;}
+.kv-row{display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px dashed var(--line); font-size:14px;}
+.kv-row.total{font-weight:800; font-size:16px; border-bottom:none; border-top:2px solid var(--line); margin-top:4px; padding-top:12px;}
+.kv-row.note{color:var(--muted); font-size:12.5px; border-bottom:none;}
+#mobileNav, #moreSheet{display:none;}
 @media (max-width:760px){
-  #sidebar{
-    position:fixed; bottom:0; top:auto; width:100%; height:auto; flex-direction:row;
-    justify-content:flex-start; border-top:1px solid var(--line); border-left:none; padding:8px 4px;
-    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px)); z-index:40;
-    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  #sidebar{display:none;}
+  #mobileNav{
+    display:flex; position:fixed; bottom:0; left:0; right:0; z-index:40; justify-content:space-around;
+    background:var(--panel); border-top:1px solid var(--line); padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));
   }
-  #sidebar::-webkit-scrollbar{display:none;}
-  #sidebar .brand, .nav-section-label{display:none;}
-  .nav-btn{flex-direction:column; font-size:10px; padding:6px 8px; gap:3px; flex:0 0 auto; min-width:64px; white-space:nowrap;}
+  #mobileNav button{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; background:none; border:none;
+    color:var(--muted); font-family:inherit; font-size:11px; font-weight:700; padding:6px 2px; border-radius:10px; cursor:pointer;
+  }
+  #mobileNav button .ico{font-size:19px;}
+  #mobileNav button.active{background:var(--maroon); color:#fff;}
+  #moreSheet.show{display:block; position:fixed; inset:0; z-index:60; background:rgba(20,10,10,.45);}
+  #moreSheet .sheet{
+    position:absolute; left:10px; right:10px; bottom:calc(70px + env(safe-area-inset-bottom,0px));
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:10px;
+    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  }
+  #moreSheet .sheet button{
+    display:flex; align-items:center; gap:8px; padding:14px 12px; border-radius:12px; border:1px solid var(--line);
+    background:var(--bg); color:var(--ink); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; text-align:right;
+  }
+  #moreSheet .sheet button.active{background:var(--maroon); color:#fff; border-color:var(--maroon);}
+  #topbar{padding:10px 12px;}
+  #topbar h2{font-size:15px;}
+  .status-pill{font-size:11px; max-width:190px; line-height:1.3;}
   #main{padding-bottom:70px;}
-  #content{padding:16px 14px 100px;}
+  #content{padding:16px 14px 110px;}
   .field-grid{grid-template-columns:1fr;}
   #fab{left:14px; bottom:calc(78px + env(safe-area-inset-bottom,0px));}
+}
+
+@media (max-width:760px){
+  #view-employees .table-wrap{border:none; background:transparent; overflow:visible;}
+  #view-employees table{min-width:0; display:block;}
+  #view-employees thead{display:none;}
+  #view-employees tbody{display:block;}
+  #view-employees tbody tr{display:grid; grid-template-columns:1fr auto; gap:6px 10px; padding:14px; margin-bottom:10px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);}
+  #view-employees tbody tr:hover{background:var(--panel);}
+  #view-employees tbody td{display:block; padding:0; white-space:normal; border:none;}
+  #view-employees td:nth-child(1), #view-employees td:nth-child(4), #view-employees td:nth-child(5){display:none;}
+  #view-employees td:nth-child(2){grid-column:1; font-weight:800; font-size:15px;}
+  #view-employees td:nth-child(7){grid-column:2; grid-row:1; justify-self:end;}
+  #view-employees td:nth-child(3){grid-column:1; color:var(--muted); font-size:13px;}
+  #view-employees td:nth-child(6){grid-column:2; justify-self:end; font-weight:700;}
+  #view-employees td:nth-child(8){grid-column:1 / -1; margin-top:4px;}
+  #view-employees td:nth-child(8) .btn{flex:1; justify-content:center;}
+  #view-employees td:nth-child(8) .btn-primary{flex:2;}
 }
 </style>
 </head>
 <body>
 
 <nav id="sidebar">
-  <div class="brand">🕌 حمام التلات</div>
+  <div class="brand"> حمام التلات</div>
   <button class="nav-btn active" data-view="dashboard"><span class="ico">📊</span> لوحة التحكم</button>
 
   <div class="nav-section-label">العمليات اليومية</div>
@@ -248,6 +301,23 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
   <button class="nav-btn" data-view="audit"><span class="ico">📜</span> سجل العمليات</button>
   <button class="nav-btn" data-view="settings"><span class="ico">⚙️</span> الإعدادات</button>
 </nav>
+
+<div id="mobileNav">
+  <button data-view="dashboard" class="active"><span class="ico">📊</span>الرئيسية</button>
+  <button data-view="employees"><span class="ico">👥</span>الموظفون</button>
+  <button data-view="attendance"><span class="ico">🕐</span>الحضور</button>
+  <button data-view="transactions"><span class="ico">💳</span>الحركات</button>
+  <button id="moreBtn"><span class="ico">☰</span>المزيد</button>
+</div>
+<div id="moreSheet">
+  <div class="sheet">
+    <button data-view="leaves"><span>🗓️</span> الإجازات والأذونات</button>
+    <button data-view="loans"><span>💰</span> السلف</button>
+    <button data-view="reports"><span>📑</span> التقارير</button>
+    <button data-view="audit"><span>📜</span> سجل العمليات</button>
+    <button data-view="settings"><span>⚙️</span> الإعدادات</button>
+  </div>
+</div>
 
 <div id="main">
   <div id="topbar">
@@ -282,8 +352,8 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
         <button class="btn btn-primary" id="addEmployeeBtn">+ إضافة موظف</button>
       </div>
       <div class="search-bar">
-        <input type="text" id="empSearch" placeholder="بحث بالاسم، الكود، أو الهاتف…">
-        <select id="empStatusFilter">
+        <input type="text" id="empSearch" aria-label="بحث في الموظفين" placeholder="بحث بالاسم، الكود، أو الهاتف…">
+        <select id="empStatusFilter" aria-label="فلترة حسب الحالة الوظيفية">
           <option value="">كل الحالات</option>
           <option value="active">على رأس العمل</option>
           <option value="leave">إجازة</option>
@@ -305,11 +375,69 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 
     <!-- ATTENDANCE -->
     <div class="view" id="view-attendance">
-      <div class="section-head"><h3>سجل اليوم</h3></div>
+      <div class="section-head">
+        <h3>الحضور والانصراف</h3>
+        <button class="btn btn-primary" id="addAttBtn">+ تسجيل يدوي</button>
+      </div>
+      <div class="att-nav">
+        <button class="btn btn-ghost btn-sm" id="attPrev">→ اليوم السابق</button>
+        <input type="date" id="attDate" aria-label="تاريخ الحضور">
+        <button class="btn btn-ghost btn-sm" id="attNext">اليوم التالي ←</button>
+        <button class="btn btn-ghost btn-sm" id="attToday">اليوم</button>
+      </div>
+      <div class="grid stats" id="attSummary"></div>
+      <div class="hint">اضغط على أي صف لتعديل وقت الحضور أو الانصراف أو مقدار اليوم.</div>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>الموظف</th><th>النوع</th><th>الوقت</th><th>ملاحظة</th></tr></thead>
+        <table class="compact">
+          <thead><tr><th>الموظف</th><th>الحضور</th><th>الانصراف</th><th>المقدار</th><th></th></tr></thead>
           <tbody id="attendanceBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMPLOYEE PROFILE -->
+    <div class="view" id="view-profile">
+      <div class="section-head">
+        <button class="btn btn-ghost btn-sm" id="profBack">→ رجوع للموظفين</button>
+        <button class="btn btn-ghost btn-sm" id="profEditBtn">✏️ تعديل البيانات</button>
+      </div>
+      <div class="card" id="profileHead"></div>
+      <div class="month-nav">
+        <button class="btn btn-ghost btn-sm" id="profPrev">→ الشهر السابق</button>
+        <strong id="profMonthLabel"></strong>
+        <button class="btn btn-ghost btn-sm" id="profNext">الشهر التالي ←</button>
+        <button class="btn btn-ghost btn-sm" id="profThisMonth">هذا الشهر</button>
+      </div>
+      <div class="row-actions" style="justify-content:flex-start; margin-bottom:14px;">
+        <button class="btn btn-primary btn-sm" id="profAddAttBtn">🕐 تسجيل حضور</button>
+        <button class="btn btn-primary btn-sm" id="profDeductBtn">➖ خصم أيام</button>
+        <button class="btn btn-ghost btn-sm" id="profTxnBtn">+ حركة مالية</button>
+        <button class="btn btn-ghost btn-sm" id="profLoanBtn">+ سلفة</button>
+      </div>
+      <div class="grid stats" id="profileStats"></div>
+      <div class="card" id="profileDue" style="margin-top:14px;"></div>
+
+      <div class="section-head"><h3>حضور الشهر</h3></div>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead><tr><th>اليوم</th><th>الحضور</th><th>الانصراف</th><th>المقدار</th></tr></thead>
+          <tbody id="profAttBody"></tbody>
+        </table>
+      </div>
+
+      <div class="section-head"><h3>حركات الشهر (مسحوبات وخصومات وإضافات)</h3></div>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead><tr><th>التاريخ</th><th>النوع</th><th>المبلغ</th><th>السبب</th><th></th></tr></thead>
+          <tbody id="profTxnBody"></tbody>
+        </table>
+      </div>
+
+      <div class="section-head"><h3>السلف</h3></div>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead><tr><th>التاريخ</th><th>القيمة</th><th>المسدد</th><th>المتبقي</th><th>الحالة</th></tr></thead>
+          <tbody id="profLoansBody"></tbody>
         </table>
       </div>
     </div>
@@ -321,8 +449,8 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
         <button class="btn btn-primary" id="addTxnBtn">+ حركة جديدة</button>
       </div>
       <div class="search-bar">
-        <select id="txnEmpFilter"><option value="">كل الموظفين</option></select>
-        <select id="txnTypeFilter">
+        <select id="txnEmpFilter" aria-label="فلترة الحركات حسب الموظف"><option value="">كل الموظفين</option></select>
+        <select id="txnTypeFilter" aria-label="فلترة الحركات حسب النوع">
           <option value="">كل الأنواع</option>
           <option value="withdrawal">مسحوب</option>
           <option value="deduction">خصم</option>
@@ -367,7 +495,7 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 
       <div class="report-controls">
         <div class="field">
-          <label>نوع التقرير</label>
+          <label for="rep_type">نوع التقرير</label>
           <select id="rep_type">
             <option value="attendance">تقرير الحضور والانصراف</option>
             <option value="absence">تقرير الغياب</option>
@@ -381,10 +509,10 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
             <option value="leavesReport">تقرير الإجازات والأذونات</option>
           </select>
         </div>
-        <div class="field"><label>من تاريخ</label><input type="date" id="rep_from"></div>
-        <div class="field"><label>إلى تاريخ</label><input type="date" id="rep_to"></div>
-        <div class="field"><label>الموظف</label><select id="rep_employee"><option value="">كل الموظفين</option></select></div>
-        <div class="field"><label>القسم</label><select id="rep_department"><option value="">كل الأقسام</option></select></div>
+        <div class="field"><label for="rep_from">من تاريخ</label><input type="date" id="rep_from"></div>
+        <div class="field"><label for="rep_to">إلى تاريخ</label><input type="date" id="rep_to"></div>
+        <div class="field"><label for="rep_employee">الموظف</label><select id="rep_employee"><option value="">كل الموظفين</option></select></div>
+        <div class="field"><label for="rep_department">القسم</label><select id="rep_department"><option value="">كل الأقسام</option></select></div>
       </div>
       <div class="period-row" id="repPeriodRow"></div>
       <button class="btn btn-primary" id="generateReportBtn">📑 إنشاء التقرير</button>
@@ -418,7 +546,7 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
         <button class="btn btn-primary" id="addLeaveBtn">+ طلب جديد</button>
       </div>
       <div class="search-bar">
-        <select id="leaveStatusFilter">
+        <select id="leaveStatusFilter" aria-label="فلترة الإجازات حسب الحالة">
           <option value="">كل الحالات</option>
           <option value="pending">قيد المراجعة</option>
           <option value="approved">موافق عليه</option>
@@ -450,18 +578,18 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
       <div class="section-head"><h3>إعدادات المنشأة والدوام</h3></div>
       <div class="card settings-card">
         <h4>اسم المنشأة</h4>
-        <div class="field"><input id="set_facilityName"></div>
+        <div class="field"><input id="set_facilityName" aria-label="اسم المنشأة"></div>
 
         <h4>الفروع</h4>
-        <div class="chip-add"><input id="newBranch" placeholder="اسم فرع جديد"><button class="btn btn-primary btn-sm" id="addBranchBtn">إضافة</button></div>
+        <div class="chip-add"><input id="newBranch" aria-label="اسم فرع جديد" placeholder="اسم فرع جديد"><button class="btn btn-primary btn-sm" id="addBranchBtn">إضافة</button></div>
         <div class="chip-list" id="branchChips"></div>
 
         <h4>الأقسام</h4>
-        <div class="chip-add"><input id="newDept" placeholder="اسم قسم جديد"><button class="btn btn-primary btn-sm" id="addDeptBtn">إضافة</button></div>
+        <div class="chip-add"><input id="newDept" aria-label="اسم قسم جديد" placeholder="اسم قسم جديد"><button class="btn btn-primary btn-sm" id="addDeptBtn">إضافة</button></div>
         <div class="chip-list" id="deptChips"></div>
 
         <h4>الوظائف</h4>
-        <div class="chip-add"><input id="newJob" placeholder="اسم وظيفة جديدة"><button class="btn btn-primary btn-sm" id="addJobBtn">إضافة</button></div>
+        <div class="chip-add"><input id="newJob" aria-label="اسم وظيفة جديدة" placeholder="اسم وظيفة جديدة"><button class="btn btn-primary btn-sm" id="addJobBtn">إضافة</button></div>
         <div class="chip-list" id="jobChips"></div>
 
         <h4>أيام العمل</h4>
@@ -469,9 +597,9 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 
         <h4>مواعيد الدوام</h4>
         <div class="field-grid">
-          <div class="field"><label>بداية الدوام</label><input type="time" id="set_startTime"></div>
-          <div class="field"><label>نهاية الدوام</label><input type="time" id="set_endTime"></div>
-          <div class="field"><label>فترة السماح (دقائق)</label><input type="number" id="set_grace" min="0"></div>
+          <div class="field"><label for="set_startTime">بداية الدوام</label><input type="time" id="set_startTime"></div>
+          <div class="field"><label for="set_endTime">نهاية الدوام</label><input type="time" id="set_endTime"></div>
+          <div class="field"><label for="set_grace">فترة السماح (دقائق)</label><input type="number" id="set_grace" min="0"></div>
         </div>
 
         <div class="modal-actions" style="margin-top:10px;">
@@ -485,7 +613,7 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
         <div class="modal-actions">
           <button class="btn btn-ghost" id="exportBackupBtn">⬇️ تصدير نسخة احتياطية</button>
           <button class="btn btn-ghost" id="importBackupBtn">⬆️ استيراد نسخة احتياطية</button>
-          <input type="file" id="importBackupFile" accept="application/json" style="display:none;">
+          <input type="file" id="importBackupFile" aria-label="اختيار ملف النسخة الاحتياطية للاستيراد" accept="application/json" style="display:none;">
         </div>
       </div>
     </div>
@@ -505,19 +633,19 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
     <h3 id="empModalTitle">إضافة موظف</h3>
     <input type="hidden" id="empId">
     <div class="field-grid">
-      <div class="field"><label>كود الموظف</label><input id="f_code" placeholder="EMP-001"></div>
-      <div class="field"><label>الاسم الكامل</label><input id="f_name" placeholder="أحمد محمد"></div>
-      <div class="field"><label>رقم الهاتف</label><input id="f_phone" placeholder="01xxxxxxxxx"></div>
-      <div class="field"><label>الرقم القومي</label><input id="f_nationalId"></div>
-      <div class="field"><label>الوظيفة</label><input id="f_job" list="jobList" placeholder="أمين صندوق"></div>
-      <div class="field"><label>القسم</label><input id="f_department" list="deptList" placeholder="مبيعات"></div>
-      <div class="field"><label>الفرع</label><input id="f_branch" list="branchList" placeholder="الفرع الرئيسي"></div>
-      <div class="field"><label>تاريخ التعيين</label><input type="date" id="f_hireDate"></div>
-      <div class="field"><label>الراتب الأساسي</label><input type="number" id="f_salary" placeholder="0"></div>
-      <div class="field"><label>نوع الدوام</label>
+      <div class="field"><label for="f_code">كود الموظف</label><input id="f_code" placeholder="EMP-001"></div>
+      <div class="field"><label for="f_name">الاسم الكامل</label><input id="f_name" placeholder="أحمد محمد"></div>
+      <div class="field"><label for="f_phone">رقم الهاتف</label><input id="f_phone" placeholder="01xxxxxxxxx"></div>
+      <div class="field"><label for="f_nationalId">الرقم القومي</label><input id="f_nationalId"></div>
+      <div class="field"><label for="f_job">الوظيفة</label><input id="f_job" list="jobList" placeholder="أمين صندوق"></div>
+      <div class="field"><label for="f_department">القسم</label><input id="f_department" list="deptList" placeholder="مبيعات"></div>
+      <div class="field"><label for="f_branch">الفرع</label><input id="f_branch" list="branchList" placeholder="الفرع الرئيسي"></div>
+      <div class="field"><label for="f_hireDate">تاريخ التعيين</label><input type="date" id="f_hireDate"></div>
+      <div class="field"><label for="f_salary">الراتب الأساسي</label><input type="number" id="f_salary" placeholder="0"></div>
+      <div class="field"><label for="f_workType">نوع الدوام</label>
         <select id="f_workType"><option value="fullTime">دوام كامل</option><option value="partTime">دوام جزئي</option><option value="shift">مناوبات</option></select>
       </div>
-      <div class="field"><label>الحالة الوظيفية</label>
+      <div class="field"><label for="f_status">الحالة الوظيفية</label>
         <select id="f_status">
           <option value="active">على رأس العمل</option>
           <option value="leave">إجازة</option>
@@ -527,7 +655,7 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
         </select>
       </div>
     </div>
-    <div class="field"><label>ملاحظات</label><textarea id="f_notes" rows="2"></textarea></div>
+    <div class="field"><label for="f_notes">ملاحظات</label><textarea id="f_notes" rows="2"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-primary" id="saveEmpBtn">حفظ</button>
       <button class="btn btn-ghost" id="cancelEmpBtn">إلغاء</button>
@@ -537,32 +665,40 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 
 <!-- Attendance Modal -->
 <div class="overlay" id="attOverlay">
-  <div class="modal" style="max-width:420px;">
-    <h3>تسجيل حضور / انصراف</h3>
+  <div class="modal" style="max-width:440px;">
+    <h3 id="attModalTitle">تسجيل حضور</h3>
     <div class="field">
-      <label>الموظف</label>
+      <label for="att_employee">الموظف</label>
       <select id="att_employee"></select>
     </div>
     <div class="field">
-      <label>نوع الحركة</label>
-      <select id="att_type"><option value="in">حضور</option><option value="out">انصراف</option></select>
+      <label for="att_date">اليوم</label>
+      <input type="date" id="att_date">
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label for="att_in">وقت الحضور</label>
+        <div class="time-row"><input type="time" id="att_in"><button type="button" class="btn btn-ghost btn-sm" id="att_inNow">الآن</button></div>
+      </div>
+      <div class="field">
+        <label for="att_out">وقت الانصراف</label>
+        <div class="time-row"><input type="time" id="att_out"><button type="button" class="btn btn-ghost btn-sm" id="att_outNow">الآن</button></div>
+      </div>
     </div>
     <div class="field">
-      <label>الوقت (تقدر تعدّله بنفسك)</label>
-      <input type="datetime-local" id="att_datetime">
-    </div>
-    <div class="field" id="att_dayTypeWrap">
-      <label>مقدار يوم العمل</label>
+      <label for="att_dayType">مقدار يوم العمل</label>
       <select id="att_dayType">
         <option value="1">يوم كامل</option>
         <option value="0.5">نصف يوم</option>
         <option value="0.25">ربع يوم</option>
       </select>
     </div>
-    <div class="field"><label>ملاحظة (اختياري)</label><input id="att_note"></div>
+    <div class="field"><label for="att_note">ملاحظة (اختياري)</label><input id="att_note"></div>
+    <div class="hint" id="att_hint"></div>
     <div class="modal-actions">
-      <button class="btn btn-primary" id="saveAttBtn">تسجيل</button>
+      <button class="btn btn-primary" id="saveAttBtn">حفظ</button>
       <button class="btn btn-ghost" id="cancelAttBtn">إلغاء</button>
+      <button class="btn btn-danger" id="delAttBtn" style="margin-inline-start:auto;">حذف السجل</button>
     </div>
   </div>
 </div>
@@ -571,9 +707,9 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 <div class="overlay" id="txnOverlay">
   <div class="modal" style="max-width:440px;">
     <h3>حركة يومية جديدة</h3>
-    <div class="field"><label>الموظف</label><select id="txn_employee"></select></div>
+    <div class="field"><label for="txn_employee">الموظف</label><select id="txn_employee"></select></div>
     <div class="field">
-      <label>نوع الحركة</label>
+      <label for="txn_type">نوع الحركة</label>
       <select id="txn_type">
         <option value="withdrawal">مسحوب من الموظف</option>
         <option value="deduction">خصم</option>
@@ -588,7 +724,7 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
       </select>
     </div>
     <div class="field" id="txn_dayTypeWrap" style="display:none;">
-      <label>احتساب الخصم بناءً على</label>
+      <label for="txn_dayType">احتساب الخصم بناءً على</label>
       <select id="txn_dayType">
         <option value="manual">مبلغ مباشر (اكتبه يدويًا)</option>
         <option value="full">يوم كامل (من راتب الموظف)</option>
@@ -597,11 +733,11 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
       </select>
     </div>
     <div class="field-grid">
-      <div class="field"><label>المبلغ</label><input type="number" id="txn_amount" placeholder="0"></div>
-      <div class="field"><label>التاريخ</label><input type="date" id="txn_date"></div>
+      <div class="field"><label for="txn_amount">المبلغ</label><input type="number" id="txn_amount" placeholder="0"></div>
+      <div class="field"><label for="txn_date">التاريخ</label><input type="date" id="txn_date"></div>
     </div>
-    <div class="field"><label>السبب</label><input id="txn_reason"></div>
-    <div class="field"><label>ملاحظات</label><textarea id="txn_notes" rows="2"></textarea></div>
+    <div class="field"><label for="txn_reason">السبب</label><input id="txn_reason"></div>
+    <div class="field"><label for="txn_notes">ملاحظات</label><textarea id="txn_notes" rows="2"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-primary" id="saveTxnBtn">حفظ الحركة</button>
       <button class="btn btn-ghost" id="cancelTxnBtn">إلغاء</button>
@@ -613,14 +749,14 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 <div class="overlay" id="loanOverlay">
   <div class="modal" style="max-width:440px;">
     <h3>سلفة جديدة</h3>
-    <div class="field"><label>الموظف</label><select id="loan_employee"></select></div>
+    <div class="field"><label for="loan_employee">الموظف</label><select id="loan_employee"></select></div>
     <div class="field-grid">
-      <div class="field"><label>قيمة السلفة</label><input type="number" id="loan_amount" placeholder="0"></div>
-      <div class="field"><label>تاريخ الصرف</label><input type="date" id="loan_date"></div>
-      <div class="field"><label>عدد الأقساط</label><input type="number" id="loan_installments" value="1" min="1"></div>
-      <div class="field"><label>تاريخ بداية الخصم</label><input type="date" id="loan_startDate"></div>
+      <div class="field"><label for="loan_amount">قيمة السلفة</label><input type="number" id="loan_amount" placeholder="0"></div>
+      <div class="field"><label for="loan_date">تاريخ الصرف</label><input type="date" id="loan_date"></div>
+      <div class="field"><label for="loan_installments">عدد الأقساط</label><input type="number" id="loan_installments" value="1" min="1"></div>
+      <div class="field"><label for="loan_startDate">تاريخ بداية الخصم</label><input type="date" id="loan_startDate"></div>
     </div>
-    <div class="field"><label>سبب السلفة</label><input id="loan_reason"></div>
+    <div class="field"><label for="loan_reason">سبب السلفة</label><input id="loan_reason"></div>
     <div class="modal-actions">
       <button class="btn btn-primary" id="saveLoanBtn">صرف السلفة</button>
       <button class="btn btn-ghost" id="cancelLoanBtn">إلغاء</button>
@@ -633,7 +769,7 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
   <div class="modal" style="max-width:380px;">
     <h3>تسجيل دفعة سلفة</h3>
     <input type="hidden" id="pay_loanId">
-    <div class="field"><label>قيمة الدفعة</label><input type="number" id="pay_amount" placeholder="0"></div>
+    <div class="field"><label for="pay_amount">قيمة الدفعة</label><input type="number" id="pay_amount" placeholder="0"></div>
     <div class="modal-actions">
       <button class="btn btn-primary" id="savePayBtn">تسجيل الدفعة</button>
       <button class="btn btn-ghost" id="cancelPayBtn">إلغاء</button>
@@ -645,9 +781,9 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
 <div class="overlay" id="leaveOverlay">
   <div class="modal" style="max-width:440px;">
     <h3>طلب إجازة / إذن</h3>
-    <div class="field"><label>الموظف</label><select id="leave_employee"></select></div>
+    <div class="field"><label for="leave_employee">الموظف</label><select id="leave_employee"></select></div>
     <div class="field">
-      <label>النوع</label>
+      <label for="leave_type">النوع</label>
       <select id="leave_type">
         <option value="annual">إجازة سنوية</option>
         <option value="sick">إجازة مرضية</option>
@@ -659,11 +795,11 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
       </select>
     </div>
     <div class="field-grid">
-      <div class="field"><label>من تاريخ</label><input type="date" id="leave_from"></div>
-      <div class="field"><label>إلى تاريخ</label><input type="date" id="leave_to"></div>
+      <div class="field"><label for="leave_from">من تاريخ</label><input type="date" id="leave_from"></div>
+      <div class="field"><label for="leave_to">إلى تاريخ</label><input type="date" id="leave_to"></div>
     </div>
-    <div class="field"><label>السبب</label><input id="leave_reason"></div>
-    <div class="field"><label>ملاحظات</label><textarea id="leave_notes" rows="2"></textarea></div>
+    <div class="field"><label for="leave_reason">السبب</label><input id="leave_reason"></div>
+    <div class="field"><label for="leave_notes">ملاحظات</label><textarea id="leave_notes" rows="2"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-primary" id="saveLeaveBtn">إرسال الطلب</button>
       <button class="btn btn-ghost" id="cancelLeaveBtn">إلغاء</button>
@@ -671,19 +807,27 @@ tfoot td{font-weight:800; background:var(--bg); border-top:2px solid var(--line)
   </div>
 </div>
 
-<!-- Statement Modal -->
-<div class="overlay" id="stmtOverlay">
-  <div class="modal" style="max-width:600px;">
-    <h3 id="stmtTitle">كشف حساب الموظف</h3>
-    <div class="table-wrap" style="margin-bottom:12px;">
-      <table>
-        <thead><tr><th>التاريخ</th><th>البيان</th><th>مبلغ</th></tr></thead>
-        <tbody id="stmtBody"></tbody>
-      </table>
+<!-- Deduct Days Modal -->
+<div class="overlay" id="dedOverlay">
+  <div class="modal" style="max-width:420px;">
+    <h3>خصم أيام من الراتب</h3>
+    <input type="hidden" id="ded_emp">
+    <div class="hint" id="ded_info"></div>
+    <div class="period-row" id="dedChips">
+      <button type="button" class="period-btn" data-d="0.25">ربع يوم</button>
+      <button type="button" class="period-btn" data-d="0.5">نصف يوم</button>
+      <button type="button" class="period-btn" data-d="1">يوم</button>
+      <button type="button" class="period-btn" data-d="2">يومين</button>
     </div>
-    <div class="card stat-card accent"><div class="num" id="stmtBalance">0</div><div class="lbl">الرصيد (له/عليه)</div></div>
-    <div class="modal-actions" style="margin-top:14px;">
-      <button class="btn btn-ghost" id="closeStmtBtn">إغلاق</button>
+    <div class="field-grid">
+      <div class="field"><label for="ded_days">عدد الأيام</label><input type="number" id="ded_days" step="0.25" min="0.25" value="1"></div>
+      <div class="field"><label for="ded_amount">المبلغ (ج.م)</label><input type="number" id="ded_amount" step="0.01" min="0"></div>
+    </div>
+    <div class="field"><label for="ded_date">التاريخ</label><input type="date" id="ded_date"></div>
+    <div class="field"><label for="ded_reason">السبب</label><input id="ded_reason" placeholder="مثال: غياب بدون إذن"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="saveDedBtn">تسجيل الخصم</button>
+      <button class="btn btn-ghost" id="cancelDedBtn">إلغاء</button>
     </div>
   </div>
 </div>
@@ -710,9 +854,44 @@ function toast(message, type='error'){
 let db = null, employees = [], attendance = [], transactions = [], loans = [], period = 'today';
 const $ = s => document.querySelector(s);
 
+// ---------- helpers ----------
+const pad = n => String(n).padStart(2,'0');
+function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }   // تاريخ محلي (مش UTC) عشان مايتأخرش يوم
+function todayStr(){ return ymd(new Date()); }
+function nowHHMM(){ const d=new Date(); return pad(d.getHours())+':'+pad(d.getMinutes()); }
+function parseYmd(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function minutesOf(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+function arDigits(s){ return String(s); }
+function fmtTime(t){ if(!t) return '—'; const [h,m]=t.split(':').map(Number); return arDigits((h%12||12)+':'+pad(m))+' '+(h>=12?'م':'ص'); }
+function fmtNum(n){ return Number(n||0).toLocaleString('ar-EG-u-nu-latn',{maximumFractionDigits:2}); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+function newId(p){ return p + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function nextRefNo(){ return Math.max(0, ...transactions.map(t=>Number(t.refNo)||0)) + 1; }
+const FRACTION_LABELS = {'1':'يوم كامل','0.5':'نصف يوم','0.25':'ربع يوم'};
+function fracLabel(f){ return FRACTION_LABELS[String(Number(f))] || (fmtNum(f)+' يوم'); }
+function fracOf(a){ return (a.dayFraction===undefined||a.dayFraction===null||a.dayFraction==='') ? 1 : Number(a.dayFraction); }
+function workedHours(a){
+  if(!a.inTime || !a.outTime) return null;
+  let diff = minutesOf(a.outTime) - minutesOf(a.inTime); if(diff<0) diff += 1440;
+  return Math.round(diff/6)/10;
+}
+function isLate(inTime){ return !!inTime && minutesOf(inTime) > minutesOf(settings.startTime) + Number(settings.graceMinutes||0); }
+function dailyRate(emp){ return (Number(emp && emp.salary)||0)/30; }
+async function dbSet(col, id, data){
+  if(!db) return;
+  if(!connectionConfirmed) toast('⚠️ لسه مفيش اتصال بالخادم — التعديل ظاهر عندك بس مش محفوظ. متقفلش الصفحة لحد ما الاتصال يرجع');
+  await db.collection(col).doc(id).set(data);
+}
+async function dbDelete(col, id){ if(db) await db.collection(col).doc(id).delete(); }
+function setOptions(id, html){
+  const el = $('#'+id); if(!el) return;
+  const cur = el.value; el.innerHTML = html;
+  if(cur && [...el.options].some(o=>o.value===cur)) el.value = cur;   // نحافظ على الاختيار الحالي لو المزامنة حصلت والنافذة مفتوحة
+}
+
 const STATUS_LABELS = {active:'على رأس العمل', leave:'إجازة', stopped:'موقوف', resigned:'مستقيل', ended:'منتهي الخدمة'};
 const STATUS_BADGE = {active:'active', leave:'leave', stopped:'stopped', resigned:'resigned', ended:'ended'};
-const TXN_LABELS = {withdrawal:'مسحوب', deduction:'خصم', addition:'إضافة', bonus:'مكافأة', penalty:'جزاء مالي', custody:'عهدة', custody_return:'رد عهدة', settlement:'تسوية', refund:'استرداد مبلغ', other:'أخرى'};
+const TXN_LABELS = {loan_payment:'تسديد قسط سلفة', withdrawal:'مسحوب', deduction:'خصم', addition:'إضافة', bonus:'مكافأة', penalty:'جزاء مالي', custody:'عهدة', custody_return:'رد عهدة', settlement:'تسوية', refund:'استرداد مبلغ', other:'أخرى'};
 const TXN_NEGATIVE = ['deduction','penalty','custody_return','refund']; // هذه تُخصم من رصيد الموظف؛ الباقي (مسحوب/إضافة/مكافأة/عهدة) يُضاف — طبقًا لمعادلة كشف الحساب
 const LOAN_STATUS_LABELS = {new:'جديدة', ongoing:'جارية', completed:'مكتملة', stopped:'متوقفة', cancelled:'ملغاة'};
 const REPORT_PRESETS = {
@@ -790,13 +969,27 @@ function initDb(){
   firebase.initializeApp(firebaseConfig);
   firestore = firebase.firestore();
   // بيحل مشاكل الشبكات اللي بتحجب الاتصال الفوري (WebChannel) وبيرجع لطريقة أبطأ بس مضمونة أكتر
-  firestore.settings({ experimentalAutoDetectLongPolling: true });
-  // بيخزّن نسخة من البيانات على الجهاز نفسه، فبعد أي ريفريش البيانات تظهر فورًا من الكاش
-  // بينما النظام بيتأكد من وجود تحديثات جديدة في الخلفية
-  firestore.enablePersistence({synchronizeTabs:true}).catch(err=>{
-    console.warn('Offline persistence غير مفعّل:', err.code);
-  });
+  firestore.settings({ experimentalForceLongPolling: true, useFetchStreams: false });
   return { collection:(name)=>makeCollectionWrapper(name), doc:(path)=>{ const [c,id]=path.split('/'); return makeCollectionWrapper(c).doc(id); } };
+}
+
+// ---------- local cache (بيخلي البيانات تظهر فورًا بعد الريفريش حتى لو الاتصال بطيء) ----------
+const CACHE_KEY = 'hammam_cache_v2';
+let cacheTimer = null, hadCache = false;
+function scheduleCache(){
+  clearTimeout(cacheTimer);
+  cacheTimer = setTimeout(()=>{
+    try{ localStorage.setItem(CACHE_KEY, JSON.stringify({employees, attendance, transactions, loans, leaves, settings, auditLog: auditLog.slice(0,200)})); }catch(e){}
+  }, 400);
+}
+function loadCache(){
+  try{
+    const s = JSON.parse(localStorage.getItem(CACHE_KEY)||'null'); if(!s) return false;
+    employees = s.employees||[]; attendance = s.attendance||[]; transactions = s.transactions||[];
+    loans = s.loans||[]; leaves = s.leaves||[]; auditLog = s.auditLog||[];
+    settings = {...DEFAULT_SETTINGS, ...(s.settings||{})};
+    return true;
+  }catch(e){ return false; }
 }
 
 // ---------- init ----------
@@ -804,16 +997,20 @@ async function init(){
   renderPeriodRow();
   wireNav();
   wireModals();
+  hadCache = loadCache();
+  if(hadCache){ renderSettingsForm(); renderAll(); }
   setStatus('offline', 'يعمل محليًا');
   try{
     db = initDb();
   }catch(e){ db = null; }
   if(db){
-    setStatus('syncing', 'جاري المزامنة…');
+    setStatus('syncing', hadCache ? 'جاري التحديث… (بتشوف آخر نسخة محفوظة على جهازك)' : 'جاري المزامنة…');
     watchCollections();
     setTimeout(()=>{
       if(!connectionConfirmed && !connectionErrorShown){
-        setStatus('offline', 'لا يوجد رد من الخادم إطلاقًا (لا اتصال ولا خطأ) — على الأغلب الشبكة نفسها بتحجب Google APIs (بعض شبكات المحمول في مصر بتعمل كده). جرّب واي فاي');
+        setStatus('offline', hadCache
+          ? 'غير متصل بالخادم — بتشوف آخر نسخة محفوظة على جهازك'
+          : 'لا يوجد رد من الخادم إطلاقًا (لا اتصال ولا خطأ) — على الأغلب الشبكة بتحجب Google. جرّب واي فاي');
       }
     }, 8000);
   } else {
@@ -832,32 +1029,32 @@ function watchCollections(){
   try{
     db.collection('employees').onSnapshot(docs => {
       employees = docs.map(d => ({id:d.id, ...d.data}));
-      setStatus('ok','متصل'); renderAll();
+      scheduleCache(); renderAll();
     });
-    db.collection('attendance').onSnapshot(docs => {
+    db.collection('attendanceDays').onSnapshot(docs => {
       attendance = docs.map(d => ({id:d.id, ...d.data}));
-      renderAll();
+      scheduleCache(); renderAll();
     });
     db.collection('transactions').onSnapshot(docs => {
       transactions = docs.map(d => ({id:d.id, ...d.data}));
-      renderAll();
+      scheduleCache(); renderAll();
     });
     db.collection('loans').onSnapshot(docs => {
       loans = docs.map(d => ({id:d.id, ...d.data}));
-      renderAll();
+      scheduleCache(); renderAll();
     });
     db.collection('leaves').onSnapshot(docs => {
       leaves = docs.map(d => ({id:d.id, ...d.data}));
-      renderAll();
+      scheduleCache(); renderAll();
     });
     db.collection('settings').onSnapshot(docs => {
       const doc = docs.find(d=>d.id==='general');
       settings = {...DEFAULT_SETTINGS, ...(doc?doc.data:{})};
-      renderSettingsForm(); renderAll();
+      scheduleCache(); renderSettingsForm(); renderAll();
     });
     db.collection('auditLog').onSnapshot(docs => {
       auditLog = docs.map(d=>({id:d.id, ...d.data})).sort((a,b)=>b.timestamp-a.timestamp);
-      renderAudit();
+      scheduleCache(); renderAudit();
     });
   }catch(e){
     setStatus('offline','غير متصل'); renderAll();
@@ -865,17 +1062,25 @@ function watchCollections(){
 }
 
 // ---------- nav ----------
+const VIEW_TITLES = {dashboard:'لوحة التحكم', employees:'الموظفون', attendance:'الحضور والانصراف', leaves:'الإجازات والأذونات', transactions:'الحركات اليومية', loans:'السلف', reports:'التقارير', audit:'سجل العمليات', settings:'الإعدادات', profile:'ملف الموظف'};
+const SECONDARY_VIEWS = ['leaves','loans','reports','audit','settings'];
+function goView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.toggle('active', el.id==='view-'+v));
+  const navKey = v==='profile' ? 'employees' : v;
+  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===navKey));
+  const more = $('#moreBtn'); if(more) more.classList.toggle('active', SECONDARY_VIEWS.includes(navKey));
+  $('#topbarTitle').textContent = VIEW_TITLES[v] || '';
+  $('#moreSheet').classList.remove('show');
+  window.scrollTo(0,0);
+  if(v==='attendance') renderAttendance();
+  if(v==='profile') renderProfile();
+}
 function wireNav(){
-  document.querySelectorAll('.nav-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const v = btn.dataset.view;
-      document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
-      $('#view-'+v).classList.add('active');
-      $('#topbarTitle').textContent = btn.textContent.trim();
-    });
+  document.querySelectorAll('[data-view]').forEach(btn=>{
+    btn.addEventListener('click', ()=> goView(btn.dataset.view));
   });
+  $('#moreBtn').addEventListener('click', ()=> $('#moreSheet').classList.toggle('show'));
+  $('#moreSheet').addEventListener('click', e=>{ if(e.target.id==='moreSheet') $('#moreSheet').classList.remove('show'); });
   $('#themeToggle').addEventListener('click', ()=>{
     const cur = document.documentElement.getAttribute('data-theme');
     const next = cur === 'dark' ? 'light' : 'dark';
@@ -923,89 +1128,74 @@ function loadingRow(colspan, emptyText){
 function renderAll(){
   renderDashboard(); renderEmployees(); renderAttendance(); populateAttEmployeeSelect();
   renderTransactions(); renderLoans(); populateEmployeeSelects(); renderLeaves(); renderAudit();
+  if(profileEmpId && $('#view-profile').classList.contains('active')) renderProfile();
 }
 
 function populateEmployeeSelects(){
-  const opts = employees.map(e=>`<option value="${e.id}">${e.name} (${e.code||''})</option>`).join('');
-  ['txn_employee','loan_employee','leave_employee'].forEach(id=>{ if($('#'+id)) $('#'+id).innerHTML = opts || '<option value="">لا يوجد موظفون</option>'; });
-  if($('#txnEmpFilter')) $('#txnEmpFilter').innerHTML = '<option value="">كل الموظفين</option>' + opts;
-  if($('#rep_employee')) $('#rep_employee').innerHTML = '<option value="">كل الموظفين</option>' + opts;
-  if($('#rep_department')){
-    const depts = [...new Set(employees.map(e=>e.department).filter(Boolean))];
-    $('#rep_department').innerHTML = '<option value="">كل الأقسام</option>' + depts.map(d=>`<option value="${d}">${d}</option>`).join('');
-  }
+  const opts = employees.map(e=>`<option value="${e.id}">${esc(e.name)} (${esc(e.code||'')})</option>`).join('');
+  ['txn_employee','loan_employee','leave_employee'].forEach(id=> setOptions(id, opts || '<option value="">لا يوجد موظفون</option>'));
+  setOptions('txnEmpFilter', '<option value="">كل الموظفين</option>' + opts);
+  setOptions('rep_employee', '<option value="">كل الموظفين</option>' + opts);
+  const depts = [...new Set(employees.map(e=>e.department).filter(Boolean))];
+  setOptions('rep_department', '<option value="">كل الأقسام</option>' + depts.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join(''));
 }
 
 function renderDashboard(){
   const {start, end} = rangeFor(period);
-  const inRange = attendance.filter(a=>{
-    const t = new Date(a.timestamp); return t>=start && t<=end;
-  });
+  const s = ymd(start), en = ymd(end), today = todayStr();
   const activeEmployees = employees.filter(e=>e.status!=='resigned' && e.status!=='ended');
-  const attendedIds = new Set(inRange.filter(a=>a.type==='in').map(a=>a.employeeId));
-  // currently in = last record today per employee is 'in'
-  const lastByEmp = {};
-  attendance.forEach(a=>{
-    if(!lastByEmp[a.employeeId] || new Date(a.timestamp) > new Date(lastByEmp[a.employeeId].timestamp)) lastByEmp[a.employeeId] = a;
-  });
-  const currentlyIn = Object.values(lastByEmp).filter(a=>{
-    const t = new Date(a.timestamp);
-    return a.type==='in' && t.toDateString() === new Date().toDateString();
-  }).length;
-  const absentToday = Math.max(activeEmployees.length - attendedIds.size, 0);
+  const inRange = attendance.filter(a=> (a.inTime||a.outTime) && a.date>=s && a.date<=en);
+  const attendedIds = new Set(inRange.map(a=>a.employeeId));
+  const todayRecs = attendance.filter(a=>a.date===today && (a.inTime||a.outTime));
+  const todayIds = new Set(todayRecs.map(a=>a.employeeId));
+  const currentlyIn = todayRecs.filter(a=>a.inTime && !a.outTime).length;
+  const lateIds = new Set(todayRecs.filter(a=>isLate(a.inTime)).map(a=>a.employeeId));
+  const notRecordedToday = activeEmployees.filter(e=>!todayIds.has(e.id)).length;
 
-  const txnInRange = transactions.filter(t=>{ const d = new Date(t.date); return d>=start && d<=end; });
-  const sumBy = types => txnInRange.filter(t=>types.includes(t.type)).reduce((s,t)=>s+Number(t.amount||0),0);
+  const txnInRange = transactions.filter(t=> t.date>=s && t.date<=en);
+  const sumBy = types => txnInRange.filter(t=>types.includes(t.type)).reduce((sum,t)=>sum+Number(t.amount||0),0);
   const withdrawals = sumBy(['withdrawal']);
   const deductions = sumBy(['deduction','penalty']);
   const additions = sumBy(['addition','bonus']);
   const net = additions - deductions - withdrawals;
   const loansOutstanding = loans.filter(l=>l.status!=='completed' && l.status!=='cancelled')
-    .reduce((s,l)=>s+Math.max(Number(l.amount||0)-Number(l.paidAmount||0),0),0);
-  const todayDate = new Date();
-  const onLeaveToday = leaves.filter(l=> l.status==='approved' && l.type!=='permission' && new Date(l.from)<=todayDate && new Date(l.to)>=todayDate).length;
-  const permissionsToday = leaves.filter(l=> l.status==='approved' && l.type==='permission' && new Date(l.from)<=todayDate && new Date(l.to)>=todayDate).length;
-
-  const [gh, gm] = settings.startTime.split(':').map(Number);
-  const thresholdMinutes = gh*60 + gm + settings.graceMinutes;
-  const lateEmployeeIds = new Set();
-  attendance.filter(a=>a.type==='in' && new Date(a.timestamp).toDateString()===new Date().toDateString()).forEach(a=>{
-    const t = new Date(a.timestamp);
-    if(t.getHours()*60 + t.getMinutes() > thresholdMinutes) lateEmployeeIds.add(a.employeeId);
-  });
+    .reduce((sum,l)=>sum+Math.max(Number(l.amount||0)-Number(l.paidAmount||0),0),0);
+  const onLeaveToday = leaves.filter(l=> l.status==='approved' && l.type!=='permission' && l.from<=today && l.to>=today).length;
+  const permissionsToday = leaves.filter(l=> l.status==='approved' && l.type==='permission' && l.from<=today && l.to>=today).length;
 
   const cards = [
     {num: employees.length, lbl:'إجمالي الموظفين', accent:true},
     {num: attendedIds.size, lbl:'الحاضرون في الفترة'},
-    {num: absentToday, lbl:'الغائبون (تقديري)'},
+    {num: notRecordedToday, lbl:'لم يسجلوا حضورًا اليوم'},
     {num: currentlyIn, lbl:'الموجودون حاليًا داخل العمل'},
-    {num: lateEmployeeIds.size, lbl:'المتأخرون اليوم'},
+    {num: lateIds.size, lbl:'المتأخرون اليوم'},
     {num: onLeaveToday, lbl:'الإجازات اليوم'},
     {num: permissionsToday, lbl:'الأذونات اليوم'},
-    {num: loansOutstanding.toLocaleString('ar-EG'), lbl:'إجمالي السلف القائمة'},
-    {num: withdrawals.toLocaleString('ar-EG'), lbl:'المسحوبات في الفترة'},
-    {num: deductions.toLocaleString('ar-EG'), lbl:'الخصومات في الفترة'},
-    {num: additions.toLocaleString('ar-EG'), lbl:'الإضافات في الفترة'},
-    {num: net.toLocaleString('ar-EG'), lbl:'صافي الحركات المالية', accent:true},
+    {num: fmtNum(loansOutstanding), lbl:'إجمالي السلف القائمة'},
+    {num: fmtNum(withdrawals), lbl:'المسحوبات في الفترة'},
+    {num: fmtNum(deductions), lbl:'الخصومات في الفترة'},
+    {num: fmtNum(additions), lbl:'الإضافات في الفترة'},
+    {num: fmtNum(net), lbl:'صافي الحركات المالية', accent:true},
   ];
-  $('#statsGrid').innerHTML = cards.map(c=>`
-    <div class="card stat-card ${c.accent?'accent':''} ${c.soon?'dim':''}">
-      <div class="num">${c.num}</div>
-      <div class="lbl">${c.lbl}${c.soon?'<span class="soon-tag">قريبًا</span>':''}</div>
+  $('#statsGrid').innerHTML = cards.map(cd=>`
+    <div class="card stat-card ${cd.accent?'accent':''}">
+      <div class="num">${cd.num}</div>
+      <div class="lbl">${cd.lbl}</div>
     </div>`).join('');
 
-  // live status table
-  if(employees.length===0){
+  if(activeEmployees.length===0){
     $('#liveStatusBody').innerHTML = loadingRow(4, 'لا يوجد موظفون بعد — ابدأ بإضافة أول موظف');
   } else {
-    $('#liveStatusBody').innerHTML = employees.map(e=>{
-      const last = lastByEmp[e.id];
-      const isToday = last && new Date(last.timestamp).toDateString()===new Date().toDateString();
-      const state = isToday ? (last.type==='in' ? 'داخل العمل' : 'خارج العمل') : 'لم يسجل اليوم';
-      const stateBadge = isToday ? (last.type==='in'?'in':'out') : 'out';
-      const lastText = last ? new Date(last.timestamp).toLocaleString('ar-EG',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}) : '—';
-      return `<tr><td>${e.name||'—'}</td><td>${e.job||'—'}</td>
-        <td><span class="badge ${stateBadge}">${state}</span></td><td>${lastText}</td></tr>`;
+    $('#liveStatusBody').innerHTML = activeEmployees.map(e=>{
+      const rec = todayRecs.find(a=>a.employeeId===e.id);
+      let state='لم يسجل اليوم', badge='out', last='—';
+      if(rec){
+        if(rec.inTime && !rec.outTime){ state='داخل العمل'; badge='in'; }
+        else { state='انصرف'; badge='out'; }
+        last = 'حضور '+fmtTime(rec.inTime)+(rec.outTime?' — انصراف '+fmtTime(rec.outTime):'');
+      }
+      return `<tr><td>${esc(e.name)||'—'}</td><td>${esc(e.job)||'—'}</td>
+        <td><span class="badge ${badge}">${state}</span></td><td>${last}</td></tr>`;
     }).join('');
   }
 }
@@ -1023,42 +1213,64 @@ function renderEmployees(){
     return;
   }
   $('#employeesBody').innerHTML = list.map(e=>`
-    <tr>
+    <tr class="clickable" data-rowprof="${e.id}">
       <td>${e.code||'—'}</td>
-      <td>${e.name||'—'}</td>
+      <td><button class="link" data-prof="${e.id}">${esc(e.name)||'—'}</button></td>
       <td>${e.job||'—'}</td>
       <td>${e.department||'—'}</td>
       <td>${e.phone||'—'}</td>
-      <td>${e.salary?Number(e.salary).toLocaleString('ar-EG'):'—'}</td>
+      <td>${e.salary?Number(e.salary).toLocaleString('ar-EG-u-nu-latn'):'—'}</td>
       <td><span class="badge ${STATUS_BADGE[e.status]||''}">${STATUS_LABELS[e.status]||e.status||'—'}</span></td>
       <td class="row-actions">
-        <button class="btn btn-ghost btn-sm" data-stmt="${e.id}">كشف الحساب</button>
+        <button class="btn btn-primary btn-sm" data-prof="${e.id}">ملف الموظف</button>
         <button class="btn btn-ghost btn-sm" data-edit="${e.id}">تعديل</button>
         <button class="btn btn-danger btn-sm" data-del="${e.id}">حذف</button>
       </td>
     </tr>`).join('');
   document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEmpModal(b.dataset.edit)));
   document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>deleteEmployee(b.dataset.del)));
-  document.querySelectorAll('[data-stmt]').forEach(b=>b.addEventListener('click',()=>openStatement(b.dataset.stmt)));
+  document.querySelectorAll('[data-prof]').forEach(b=>b.addEventListener('click',ev=>{ ev.stopPropagation(); openProfile(b.dataset.prof); }));
+  document.querySelectorAll('[data-rowprof]').forEach(tr=>tr.addEventListener('click',ev=>{ if(ev.target.closest('button')) return; openProfile(tr.dataset.rowprof); }));
 }
 
 function renderAttendance(){
-  const today = new Date().toDateString();
-  const todays = attendance.filter(a=> new Date(a.timestamp).toDateString()===today)
-    .sort((a,b)=> new Date(b.timestamp)-new Date(a.timestamp));
-  if(todays.length===0){
-    $('#attendanceBody').innerHTML = loadingRow(4, 'لا توجد حركات اليوم');
+  if(!$('#attDate')) return;
+  if(!$('#attDate').value) $('#attDate').value = todayStr();
+  const date = $('#attDate').value;
+  const isToday = date===todayStr();
+  const recs = attendance.filter(a=>a.date===date);
+  const byEmp = {}; recs.forEach(a=>byEmp[a.employeeId]=a);
+  const list = employees.filter(e=> (e.status!=='resigned' && e.status!=='ended') || byEmp[e.id]);
+
+  const present = recs.filter(a=>a.inTime||a.outTime).length;
+  const inNow = recs.filter(a=>a.inTime && !a.outTime).length;
+  const lateN = recs.filter(a=>isLate(a.inTime)).length;
+  const missing = list.filter(e=>!byEmp[e.id] && e.status!=='resigned' && e.status!=='ended').length;
+  $('#attSummary').innerHTML = [
+    {num:present, lbl:'سجّلوا حضور', accent:true}, {num:inNow, lbl:'داخل العمل الآن'},
+    {num:lateN, lbl:'متأخرون'}, {num:missing, lbl:'لم يسجلوا'},
+  ].map(cd=>`<div class="card stat-card ${cd.accent?'accent':''}"><div class="num">${cd.num}</div><div class="lbl">${cd.lbl}</div></div>`).join('');
+
+  if(list.length===0){
+    $('#attendanceBody').innerHTML = loadingRow(5, 'لا يوجد موظفون — أضف موظفًا أولًا');
     return;
   }
-  $('#attendanceBody').innerHTML = todays.map(a=>{
-    const emp = employees.find(e=>e.id===a.employeeId);
-    return `<tr>
-      <td>${emp?emp.name:'موظف محذوف'}</td>
-      <td><span class="badge ${a.type}">${a.type==='in'?'حضور':'انصراف'}</span> ${a.type==='in' && a.dayFraction && a.dayFraction<1 ? `<span class="soon-tag">${a.dayFraction===0.5?'نصف يوم':'ربع يوم'}</span>` : ''}</td>
-      <td>${new Date(a.timestamp).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</td>
-      <td>${a.note||'—'}</td>
-    </tr>`;
+  $('#attendanceBody').innerHTML = list.map(emp=>{
+    const rec = byEmp[emp.id];
+    let action = '';
+    if(!rec) action = isToday ? `<button class="btn btn-primary btn-sm" data-quick="in" data-emp="${emp.id}">حضور الآن</button>` : `<button class="btn btn-ghost btn-sm" data-open="${emp.id}">تسجيل</button>`;
+    else if(rec.inTime && !rec.outTime && isToday) action = `<button class="btn btn-primary btn-sm" data-quick="out" data-emp="${emp.id}">انصراف الآن</button>`;
+    else action = `<button class="btn btn-ghost btn-sm" data-open="${emp.id}">تعديل</button>`;
+    const hrs = rec ? workedHours(rec) : null;
+    return `<tr class="clickable" data-open="${emp.id}">
+      <td>${esc(emp.name)}${rec && isLate(rec.inTime) ? '<span class="soon-tag tag-warn">متأخر</span>' : ''}${rec && rec.note ? `<div class="meta">${esc(rec.note)}</div>` : ''}</td>
+      <td>${rec ? fmtTime(rec.inTime) : '—'}</td>
+      <td>${rec ? fmtTime(rec.outTime) : '—'}</td>
+      <td>${rec ? fracLabel(fracOf(rec)) + (hrs!==null ? `<div class="meta">${fmtNum(hrs)} ساعة</div>` : '') : '<span class="badge out">لم يسجل</span>'}</td>
+      <td>${action}</td></tr>`;
   }).join('');
+  document.querySelectorAll('#attendanceBody [data-quick]').forEach(b=>b.addEventListener('click', ev=>{ ev.stopPropagation(); quickAttendance(b.dataset.emp, b.dataset.quick); }));
+  document.querySelectorAll('#attendanceBody [data-open]').forEach(b=>b.addEventListener('click', ev=>{ ev.stopPropagation(); openAttModal(b.dataset.open, date); }));
 }
 
 function renderTransactions(){
@@ -1077,7 +1289,7 @@ function renderTransactions(){
       <td>#${t.refNo||'—'}</td>
       <td>${emp?emp.name:'—'}</td>
       <td>${TXN_LABELS[t.type]||t.type}</td>
-      <td class="${neg?'amt-neg':'amt-pos'}">${neg?'-':'+'}${Number(t.amount||0).toLocaleString('ar-EG')}</td>
+      <td class="${neg?'amt-neg':'amt-pos'}">${neg?'-':'+'}${Number(t.amount||0).toLocaleString('ar-EG-u-nu-latn')}</td>
       <td>${t.date||'—'}</td>
       <td>${t.reason||'—'}</td>
       <td class="row-actions"><button class="btn btn-danger btn-sm" data-txndel="${t.id}">حذف</button></td>
@@ -1098,10 +1310,10 @@ function renderLoans(){
     const pct = amount ? Math.min(100, Math.round(paid/amount*100)) : 0;
     return `<tr>
       <td>${emp?emp.name:'—'}</td>
-      <td>${amount.toLocaleString('ar-EG')}</td>
+      <td>${amount.toLocaleString('ar-EG-u-nu-latn')}</td>
       <td>${l.installments||1}</td>
-      <td class="amt-pos">${paid.toLocaleString('ar-EG')}</td>
-      <td class="amt-neg">${remaining.toLocaleString('ar-EG')}</td>
+      <td class="amt-pos">${paid.toLocaleString('ar-EG-u-nu-latn')}</td>
+      <td class="amt-neg">${remaining.toLocaleString('ar-EG-u-nu-latn')}</td>
       <td><div class="progress"><div style="width:${pct}%"></div></div></td>
       <td><span class="badge ${l.status==='completed'?'active':(l.status==='cancelled'||l.status==='stopped'?'stopped':'leave')}">${LOAN_STATUS_LABELS[l.status]||l.status}</span></td>
       <td class="row-actions">
@@ -1197,9 +1409,9 @@ function workDaysInRange(start, end){
   return Math.max(count,1);
 }
 
-function populateAttEmployeeSelect(){
-  $('#att_employee').innerHTML = employees.filter(e=>e.status==='active').map(e=>`<option value="${e.id}">${e.name} (${e.code||''})</option>`).join('')
-    || '<option value="">لا يوجد موظفون نشطون</option>';
+function populateAttEmployeeSelect(selectedId){
+  const list = employees.filter(e=> (e.status!=='resigned' && e.status!=='ended') || e.id===selectedId);
+  setOptions('att_employee', list.map(e=>`<option value="${e.id}">${esc(e.name)} (${esc(e.code||'')})</option>`).join('') || '<option value="">لا يوجد موظفون</option>');
 }
 
 // ---------- employee CRUD ----------
@@ -1207,19 +1419,23 @@ function wireModals(){
   $('#addEmployeeBtn').addEventListener('click', ()=>openEmpModal(null));
   $('#cancelEmpBtn').addEventListener('click', ()=>$('#empOverlay').classList.remove('show'));
   $('#saveEmpBtn').addEventListener('click', saveEmployee);
-  $('#fab').addEventListener('click', ()=>{
-    populateAttEmployeeSelect();
-    $('#att_type').value = 'in';
-    $('#att_datetime').value = nowForInput();
-    $('#att_dayType').value = '1';
-    toggleAttDayType();
-    $('#attOverlay').classList.add('show');
-  });
-  $('#att_type').addEventListener('change', toggleAttDayType);
+  $('#fab').addEventListener('click', ()=> openAttModal(null, todayStr()));
+  $('#addAttBtn').addEventListener('click', ()=> openAttModal(null, $('#attDate').value || todayStr()));
   $('#cancelAttBtn').addEventListener('click', ()=>$('#attOverlay').classList.remove('show'));
   $('#saveAttBtn').addEventListener('click', saveAttendance);
+  $('#delAttBtn').addEventListener('click', ()=>{ const id = attKey($('#att_employee').value, $('#att_date').value); deleteAttendance(id); });
+  $('#att_employee').addEventListener('change', loadAttForm);
+  $('#att_date').addEventListener('change', loadAttForm);
+  $('#att_dayType').addEventListener('change', updateAttHint);
+  $('#att_inNow').addEventListener('click', ()=>{ $('#att_in').value = nowHHMM(); });
+  $('#att_outNow').addEventListener('click', ()=>{ $('#att_out').value = nowHHMM(); });
+  $('#attDate').value = todayStr();
+  $('#attDate').addEventListener('change', renderAttendance);
+  $('#attToday').addEventListener('click', ()=>{ $('#attDate').value = todayStr(); renderAttendance(); });
+  $('#attPrev').addEventListener('click', ()=>{ const d=parseYmd($('#attDate').value||todayStr()); d.setDate(d.getDate()-1); $('#attDate').value=ymd(d); renderAttendance(); });
+  $('#attNext').addEventListener('click', ()=>{ const d=parseYmd($('#attDate').value||todayStr()); d.setDate(d.getDate()+1); $('#attDate').value=ymd(d); renderAttendance(); });
 
-  $('#addTxnBtn').addEventListener('click', ()=>{ $('#txn_date').value = todayStr(); $('#txn_dayType').value='manual'; toggleDayTypeField(); $('#txnOverlay').classList.add('show'); });
+  $('#addTxnBtn').addEventListener('click', ()=> openTxnModal(null));
   $('#cancelTxnBtn').addEventListener('click', ()=>$('#txnOverlay').classList.remove('show'));
   $('#saveTxnBtn').addEventListener('click', saveTransaction);
   $('#txnEmpFilter').addEventListener('change', renderTransactions);
@@ -1228,12 +1444,26 @@ function wireModals(){
   $('#txn_dayType').addEventListener('change', recalcDayAmount);
   $('#txn_employee').addEventListener('change', recalcDayAmount);
 
-  $('#addLoanBtn').addEventListener('click', ()=>{ $('#loan_date').value = todayStr(); $('#loan_startDate').value = todayStr(); $('#loanOverlay').classList.add('show'); });
+  $('#addLoanBtn').addEventListener('click', ()=> openLoanModal(null));
   $('#cancelLoanBtn').addEventListener('click', ()=>$('#loanOverlay').classList.remove('show'));
   $('#saveLoanBtn').addEventListener('click', saveLoan);
   $('#cancelPayBtn').addEventListener('click', ()=>$('#loanPayOverlay').classList.remove('show'));
   $('#savePayBtn').addEventListener('click', saveLoanPayment);
-  $('#closeStmtBtn').addEventListener('click', ()=>$('#stmtOverlay').classList.remove('show'));
+  // ملف الموظف
+  $('#profBack').addEventListener('click', ()=> goView('employees'));
+  $('#profEditBtn').addEventListener('click', ()=> openEmpModal(profileEmpId));
+  $('#profAddAttBtn').addEventListener('click', ()=> openAttModal(profileEmpId, todayStr()));
+  $('#profDeductBtn').addEventListener('click', ()=> openDeductModal(profileEmpId));
+  $('#profTxnBtn').addEventListener('click', ()=> openTxnModal(profileEmpId));
+  $('#profLoanBtn').addEventListener('click', ()=> openLoanModal(profileEmpId));
+  $('#profPrev').addEventListener('click', ()=> shiftProfMonth(-1));
+  $('#profNext').addEventListener('click', ()=> shiftProfMonth(1));
+  $('#profThisMonth').addEventListener('click', ()=>{ profMonth = todayStr().slice(0,7); renderProfile(); });
+  // خصم الأيام
+  $('#cancelDedBtn').addEventListener('click', ()=>$('#dedOverlay').classList.remove('show'));
+  $('#saveDedBtn').addEventListener('click', saveDeduction);
+  $('#ded_days').addEventListener('input', recalcDeduct);
+  document.querySelectorAll('#dedChips [data-d]').forEach(b=>b.addEventListener('click', ()=>{ $('#ded_days').value = b.dataset.d; recalcDeduct(); }));
 
   const REP_PERIODS = [{id:'today',label:'اليوم'},{id:'week',label:'هذا الأسبوع'},{id:'month',label:'هذا الشهر'},{id:'lastMonth',label:'الشهر السابق'},{id:'year',label:'هذه السنة'}];
   $('#repPeriodRow').innerHTML = REP_PERIODS.map(p=>`<button type="button" class="period-btn" data-rp="${p.id}">${p.label}</button>`).join('');
@@ -1243,10 +1473,10 @@ function wireModals(){
     let r;
     if(b.dataset.rp==='year'){ const s=new Date(); s.setMonth(0,1); s.setHours(0,0,0,0); const e=new Date(); e.setHours(23,59,59,999); r={start:s,end:e}; }
     else r = rangeFor(b.dataset.rp);
-    $('#rep_from').value = r.start.toISOString().slice(0,10);
-    $('#rep_to').value = r.end.toISOString().slice(0,10);
+    $('#rep_from').value = ymd(r.start);
+    $('#rep_to').value = ymd(r.end);
   }));
-  $('#rep_from').value = rangeFor('month').start.toISOString().slice(0,10);
+  $('#rep_from').value = ymd(rangeFor('month').start);
   $('#rep_to').value = todayStr();
 
   $('#generateReportBtn').addEventListener('click', generateReport);
@@ -1273,7 +1503,6 @@ function wireModals(){
   });
 }
 
-function todayStr(){ return new Date().toISOString().slice(0,10); }
 
 function openEmpModal(id){
   const e = id ? employees.find(x=>x.id===id) : {};
@@ -1343,61 +1572,135 @@ async function deleteEmployee(id){
 }
 
 // ---------- attendance ----------
-function nowForInput(){
-  const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0,16);
-}
-function toggleAttDayType(){
-  $('#att_dayTypeWrap').style.display = $('#att_type').value==='in' ? 'block' : 'none';
+const attKey = (eid, date) => eid + '_' + date;
+const autoDedId = (eid, date) => 'autoatt_' + eid + '_' + date;
+
+function openAttModal(employeeId, date){
+  populateAttEmployeeSelect(employeeId);
+  if(employeeId) $('#att_employee').value = employeeId;
+  $('#att_date').value = date || todayStr();
+  loadAttForm();
+  $('#attOverlay').classList.add('show');
 }
 
-async function saveAttendance(){
-  const employeeId = $('#att_employee').value;
-  if(!employeeId){ toast('اختر موظف'); return; }
-  const type = $('#att_type').value;
-  const dayFraction = type==='in' ? Number($('#att_dayType').value) : null;
-  const dtVal = $('#att_datetime').value;
-  const timestamp = dtVal ? new Date(dtVal).getTime() : Date.now();
-  const data = {
-    employeeId, type,
-    note: $('#att_note').value.trim(),
-    timestamp,
-    dayFraction,
-  };
-  const tempId = 'temp_'+Date.now();
-  attendance.push({id:tempId, ...data});
+function loadAttForm(){
+  const eid = $('#att_employee').value, date = $('#att_date').value;
+  const rec = (eid && date) ? attendance.find(a=>a.id===attKey(eid,date)) : null;
+  $('#attModalTitle').textContent = rec ? 'تعديل سجل الحضور' : 'تسجيل حضور';
+  $('#att_in').value = rec ? (rec.inTime||'') : (date===todayStr() ? nowHHMM() : '');
+  $('#att_out').value = rec ? (rec.outTime||'') : '';
+  $('#att_dayType').value = rec ? String(fracOf(rec)) : '1';
+  if(![...$('#att_dayType').options].some(o=>o.value===$('#att_dayType').value)){
+    const o = document.createElement('option'); o.value = String(fracOf(rec)); o.textContent = fracLabel(fracOf(rec)); $('#att_dayType').appendChild(o);
+    $('#att_dayType').value = String(fracOf(rec));
+  }
+  $('#att_note').value = rec ? (rec.note||'') : '';
+  $('#delAttBtn').style.display = rec ? '' : 'none';
+  updateAttHint();
+}
+
+function updateAttHint(){
+  const emp = employees.find(e=>e.id===$('#att_employee').value);
+  const f = Number($('#att_dayType').value);
+  let msg = '';
+  if(f<1){
+    if(emp && Number(emp.salary)>0) msg = `سيتم تسجيل خصم تلقائي ${fmtNum(Math.round(dailyRate(emp)*(1-f)*100)/100)} ج.م (الراتب ÷ 30 × الجزء الناقص من اليوم).`;
+    else msg = 'الراتب الأساسي للموظف غير مسجل، فلن يتم احتساب خصم تلقائي.';
+  } else if(emp && transactions.some(t=>t.id===autoDedId(emp.id, $('#att_date').value))){
+    msg = 'اليوم كامل: سيتم إلغاء الخصم التلقائي السابق لهذا اليوم.';
+  }
+  $('#att_hint').textContent = msg;
+}
+
+// كتابة سجل يوم واحد (حضور + انصراف + مقدار اليوم) وضبط الخصم التلقائي المرتبط بيه
+async function commitAttendance(rec){
+  const emp = employees.find(e=>e.id===rec.employeeId);
+  const id = attKey(rec.employeeId, rec.date);
+  const prev = attendance.find(a=>a.id===id);
+  const data = {employeeId:rec.employeeId, date:rec.date, inTime:rec.inTime||'', outTime:rec.outTime||'', dayFraction:rec.dayFraction, note:rec.note||'', createdAt: prev?prev.createdAt:Date.now(), updatedAt: Date.now()};
+  const i = attendance.findIndex(a=>a.id===id);
+  if(i>-1) attendance[i] = {id, ...data}; else attendance.push({id, ...data});
+
+  // الخصم التلقائي لو اليوم مش كامل (id ثابت، فالتعديل بيحدّث نفس الخصم بدل ما يكرره)
+  const dedId = autoDedId(rec.employeeId, rec.date);
+  const prevDed = transactions.find(t=>t.id===dedId);
+  const missing = 1 - rec.dayFraction;
+  const amount = emp ? Math.round(dailyRate(emp)*missing*100)/100 : 0;
+  let dedOp = null;
+  if(rec.dayFraction<1 && amount>0){
+    const dd = {employeeId:rec.employeeId, type:'deduction', amount, date:rec.date, reason:`خصم تلقائي — ${fracLabel(rec.dayFraction)} بتاريخ ${rec.date}`, notes:'', dayFraction:missing, auto:true, refNo: prevDed?prevDed.refNo:nextRefNo(), createdAt: prevDed?prevDed.createdAt:Date.now()};
+    const k = transactions.findIndex(t=>t.id===dedId);
+    if(k>-1) transactions[k] = {id:dedId, ...dd}; else transactions.push({id:dedId, ...dd});
+    dedOp = ()=>dbSet('transactions', dedId, dd);
+  } else {
+    if(rec.dayFraction<1) toast('الراتب الأساسي للموظف غير مسجل — اتسجل الحضور بدون خصم تلقائي');
+    if(prevDed){ transactions = transactions.filter(t=>t.id!==dedId); dedOp = ()=>dbDelete('transactions', dedId); }
+  }
   renderAll();
-  $('#att_note').value='';
-  $('#attOverlay').classList.remove('show');
   try{
-    if(db){ await db.collection('attendance').add(data); }
-    // لو حضور جزئي (نص/ربع يوم)، يتسجل خصم تلقائي على الفرق من راتب اليوم
-    if(type==='in' && dayFraction && dayFraction < 1){
-      const emp = employees.find(e=>e.id===employeeId);
-      if(emp && emp.salary){
-        const missing = 1 - dayFraction;
-        const amount = Math.round((Number(emp.salary)/30) * missing * 100)/100;
-        const dayLabel = dayFraction===0.5 ? 'نصف يوم' : 'ربع يوم';
-        const txnData = {
-          employeeId, type:'deduction', amount,
-          date: new Date(timestamp).toISOString().slice(0,10),
-          reason: `خصم تلقائي — حضور ${dayLabel} بتاريخ ${new Date(timestamp).toLocaleDateString('ar-EG')}`,
-          notes: '', dayFraction: missing, refNo: transactions.length+1, createdAt: Date.now(),
-        };
-        transactions.push({id:'temp_'+Date.now(), ...txnData});
-        renderAll();
-        if(db){ await db.collection('transactions').add(txnData); }
-        logAudit('خصم تلقائي من الحضور', `${emp.name} — ${dayLabel} — ${amount} ج.م`);
-      }
-    }
+    await Promise.all([dbSet('attendanceDays', id, data), dedOp ? dedOp() : null]);
+    logAudit(prev?'تعديل سجل حضور':'تسجيل حضور', `${emp?emp.name:''} — ${rec.date} — ${fracLabel(rec.dayFraction)}${rec.inTime?' — حضور '+rec.inTime:''}${rec.outTime?' — انصراف '+rec.outTime:''}`);
   }catch(e){
-    toast('تعذر تسجيل الحركة على الخادم — تحقق من الاتصال');
-    attendance = attendance.filter(a=>a.id!==tempId); renderAll();
+    toast('تعذر الحفظ على الخادم — تحقق من الاتصال بالإنترنت');
   }
 }
 
+async function saveAttendance(){
+  const employeeId = $('#att_employee').value, date = $('#att_date').value;
+  const inTime = $('#att_in').value, outTime = $('#att_out').value;
+  if(!employeeId){ toast('اختر موظف'); return; }
+  if(!date){ toast('اختر اليوم'); return; }
+  if(!inTime && !outTime){ toast('اكتب وقت الحضور أو الانصراف'); return; }
+  $('#attOverlay').classList.remove('show');
+  await commitAttendance({employeeId, date, inTime, outTime, dayFraction:Number($('#att_dayType').value), note:$('#att_note').value.trim()});
+  toast('تم حفظ الحضور ✓', 'success');
+}
+
+// تسجيل سريع بضغطة واحدة: حضور الآن / انصراف الآن
+async function quickAttendance(employeeId, kind){
+  const date = todayStr(), id = attKey(employeeId, date);
+  const rec = attendance.find(a=>a.id===id);
+  const emp = employees.find(e=>e.id===employeeId);
+  if(kind==='in'){
+    await commitAttendance({employeeId, date, inTime: nowHHMM(), outTime:'', dayFraction:1, note:''});
+    toast(`تم تسجيل حضور ${emp?emp.name:''} ✓`, 'success');
+  } else if(rec){
+    await commitAttendance({employeeId, date, inTime: rec.inTime, outTime: nowHHMM(), dayFraction: fracOf(rec), note: rec.note});
+    toast(`تم تسجيل انصراف ${emp?emp.name:''} ✓`, 'success');
+  }
+}
+
+async function deleteAttendance(id){
+  const rec = attendance.find(a=>a.id===id);
+  if(!rec) return;
+  if(!confirm('حذف سجل الحضور ده؟ (لو ليه خصم تلقائي هيتلغي كمان)')) return;
+  const dedId = autoDedId(rec.employeeId, rec.date);
+  const hadDed = transactions.some(t=>t.id===dedId);
+  attendance = attendance.filter(a=>a.id!==id);
+  transactions = transactions.filter(t=>t.id!==dedId);
+  $('#attOverlay').classList.remove('show');
+  renderAll();
+  try{
+    await Promise.all([dbDelete('attendanceDays', id), hadDed ? dbDelete('transactions', dedId) : null]);
+    const emp = employees.find(e=>e.id===rec.employeeId);
+    logAudit('حذف سجل حضور', `${emp?emp.name:''} — ${rec.date}`);
+  }catch(e){ toast('تعذر الحذف من الخادم'); }
+}
+
 // ---------- daily transactions ----------
+function openTxnModal(employeeId){
+  populateEmployeeSelects();
+  if(employeeId) $('#txn_employee').value = employeeId;
+  $('#txn_date').value = todayStr(); $('#txn_dayType').value = 'manual'; toggleDayTypeField();
+  $('#txnOverlay').classList.add('show');
+}
+function openLoanModal(employeeId){
+  populateEmployeeSelects();
+  if(employeeId) $('#loan_employee').value = employeeId;
+  $('#loan_date').value = todayStr(); $('#loan_startDate').value = todayStr();
+  $('#loanOverlay').classList.add('show');
+}
+
 function toggleDayTypeField(){
   const show = $('#txn_type').value === 'deduction';
   $('#txn_dayTypeWrap').style.display = show ? 'block' : 'none';
@@ -1426,7 +1729,7 @@ async function saveTransaction(){
     reason: $('#txn_reason').value.trim() || dayTypeLabel || '',
     notes: $('#txn_notes').value.trim(),
     dayFraction: dayType==='full'?1:dayType==='half'?0.5:dayType==='quarter'?0.25:null,
-    refNo: transactions.length+1,
+    refNo: nextRefNo(),
     createdAt: Date.now(),
   };
   const tempId = 'temp_'+Date.now();
@@ -1505,7 +1808,7 @@ async function saveLoanPayment(){
   const i = loans.findIndex(x=>x.id===loanId);
   const prevLoan = {...loans[i]};
   loans[i] = {...loans[i], paidAmount, status};
-  const txnData = { employeeId:l.employeeId, type:'loan_payment', amount, date: todayStr(), reason:'تسديد قسط سلفة', refNo: transactions.length+1, createdAt: Date.now() };
+  const txnData = { employeeId:l.employeeId, type:'loan_payment', amount, date: todayStr(), reason:'تسديد قسط سلفة', refNo: nextRefNo(), createdAt: Date.now() };
   const tempTxnId = 'temp_'+Date.now();
   transactions.push({id:tempTxnId, ...txnData});
   renderAll();
@@ -1536,31 +1839,166 @@ async function deleteLoan(id){
 }
 
 // ---------- employee statement ----------
-function openStatement(employeeId){
-  const emp = employees.find(e=>e.id===employeeId);
-  $('#stmtTitle').textContent = 'كشف حساب: ' + (emp?emp.name:'');
-  const empLoans = loans.filter(l=>l.employeeId===employeeId).map(l=>({
-    date:l.date, label:'سلفة صرفت', amount:Number(l.amount), sign:1
-  }));
-  const empTxns = transactions.filter(t=>t.employeeId===employeeId && t.type!=='loan_payment').map(t=>({
-    date:t.date, label:TXN_LABELS[t.type]||t.type, amount:Number(t.amount), sign: TXN_NEGATIVE.includes(t.type)?-1:1
-  }));
-  const empPayments = transactions.filter(t=>t.employeeId===employeeId && t.type==='loan_payment').map(t=>({
-    date:t.date, label:'تسديد سلفة', amount:Number(t.amount), sign:-1
-  }));
-  const rows = [...empLoans, ...empTxns, ...empPayments].sort((a,b)=> new Date(a.date)-new Date(b.date));
-  let balance = 0;
-  if(rows.length===0){
-    $('#stmtBody').innerHTML = `<tr><td colspan="3" class="empty">لا توجد حركات مسجلة لهذا الموظف</td></tr>`;
-  } else {
-    $('#stmtBody').innerHTML = rows.map(r=>{
-      balance += r.sign * r.amount;
-      return `<tr><td>${r.date||'—'}</td><td>${r.label}</td>
-        <td class="${r.sign<0?'amt-neg':'amt-pos'}">${r.sign<0?'-':'+'}${r.amount.toLocaleString('ar-EG')}</td></tr>`;
-    }).join('');
+// ---------- ملف الموظف الشهري ----------
+let profileEmpId = null, profMonth = todayStr().slice(0,7);
+const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const PAY_EFFECT = {addition:1, bonus:1, deduction:-1, penalty:-1, withdrawal:-1, loan_payment:-1};
+
+function monthRange(m){
+  const [y,mo] = m.split('-').map(Number);
+  const start = new Date(y,mo-1,1), end = new Date(y,mo,0,23,59,59,999);
+  return {start, end, s:ymd(start), e:ymd(end), label: MONTHS_AR[mo-1]+' '+arDigits(y)};
+}
+function shiftProfMonth(delta){
+  const [y,mo] = profMonth.split('-').map(Number);
+  const d = new Date(y, mo-1+delta, 1);
+  profMonth = d.getFullYear()+'-'+pad(d.getMonth()+1);
+  renderProfile();
+}
+function openProfile(id){
+  profileEmpId = id; profMonth = todayStr().slice(0,7);
+  goView('profile');
+}
+function countWorkDays(start, end){
+  let n=0; const d = new Date(start);
+  while(d<=end){ if(isWorkDay(d)) n++; d.setDate(d.getDate()+1); }
+  return n;
+}
+function leaveDaysIn(empId, start, end){
+  return leaves.filter(l=>l.employeeId===empId && l.status==='approved' && l.type!=='permission' && new Date(l.from)<=end && new Date(l.to)>=start)
+    .reduce((sum,l)=>{
+      const f = new Date(Math.max(new Date(l.from), start)), t = new Date(Math.min(new Date(l.to), end));
+      return sum + Math.max(Math.round((t-f)/86400000)+1, 0);
+    }, 0);
+}
+
+function renderProfile(){
+  if(!profileEmpId) return;
+  const emp = employees.find(e=>e.id===profileEmpId);
+  if(!emp){ $('#profileHead').innerHTML = '<div class="empty">الموظف غير موجود (يمكن اتحذف)</div>'; return; }
+  const mr = monthRange(profMonth);
+  $('#profMonthLabel').textContent = mr.label;
+  const daily = dailyRate(emp), salary = Number(emp.salary)||0;
+
+  $('#profileHead').innerHTML = `
+    <div style="display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+      <div>
+        <h3 style="margin:0 0 4px; font-size:19px; font-weight:800;">${esc(emp.name)}</h3>
+        <div class="meta">${[emp.job,emp.department,emp.branch].filter(Boolean).map(esc).join(' · ') || '—'}</div>
+        <div class="meta">${emp.phone?('📞 '+esc(emp.phone)):''}${emp.hireDate?(' · تعيين: '+esc(emp.hireDate)):''}</div>
+      </div>
+      <div>
+        <span class="badge ${STATUS_BADGE[emp.status]||''}">${STATUS_LABELS[emp.status]||'—'}</span>
+        <div class="meta">الراتب الأساسي: <b>${fmtNum(salary)}</b> ج.م</div>
+        <div class="meta">قيمة اليوم (÷ 30): <b>${fmtNum(Math.round(daily*100)/100)}</b> ج.م</div>
+      </div>
+    </div>`;
+
+  // الحضور
+  const attRecs = attendance.filter(a=>a.employeeId===emp.id && a.date>=mr.s && a.date<=mr.e && (a.inTime||a.outTime))
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  const days = attRecs.reduce((sum,a)=>sum+fracOf(a),0);
+  const leaveDays = leaveDaysIn(emp.id, mr.start, mr.end);
+  const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
+  const upto = mr.end < todayEnd ? mr.end : todayEnd;
+  const expected = mr.start<=upto ? countWorkDays(mr.start, upto) : 0;
+  const absent = Math.max(expected - days - leaveDays, 0);
+  const totalHours = attRecs.reduce((sum,a)=>sum+(workedHours(a)||0),0);
+
+  // الحركات
+  const txns = transactions.filter(t=>t.employeeId===emp.id && t.date>=mr.s && t.date<=mr.e)
+    .sort((a,b)=> b.date.localeCompare(a.date) || (Number(b.createdAt)||0)-(Number(a.createdAt)||0));
+  const sum = types => txns.filter(t=>types.includes(t.type)).reduce((s,t)=>s+Number(t.amount||0),0);
+  const w = sum(['withdrawal']), d = sum(['deduction','penalty']), a = sum(['addition','bonus']), r = sum(['loan_payment']);
+  const empLoans = loans.filter(l=>l.employeeId===emp.id).sort((x,y)=>String(y.date).localeCompare(String(x.date)));
+  const outstanding = empLoans.filter(l=>l.status!=='completed' && l.status!=='cancelled').reduce((s,l)=>s+Math.max(Number(l.amount)-Number(l.paidAmount||0),0),0);
+
+  $('#profileStats').innerHTML = [
+    {num:fmtNum(days), lbl:'أيام العمل الفعلية', accent:true},
+    {num:fmtNum(absent), lbl:'أيام بدون تسجيل حضور (تقديري)'},
+    {num:fmtNum(leaveDays), lbl:'أيام إجازة معتمدة'},
+    {num:fmtNum(totalHours), lbl:'إجمالي ساعات العمل'},
+    {num:fmtNum(w), lbl:'المسحوبات'},
+    {num:fmtNum(d), lbl:'الخصومات والجزاءات'},
+    {num:fmtNum(a), lbl:'الإضافات والمكافآت'},
+    {num:fmtNum(r), lbl:'أقساط سلف مسددة'},
+    {num:fmtNum(outstanding), lbl:'سلف قائمة (إجمالي)'},
+  ].map(cd=>`<div class="card stat-card ${cd.accent?'accent':''}"><div class="num">${cd.num}</div><div class="lbl">${cd.lbl}</div></div>`).join('');
+
+  const net = salary + a - d - w - r;
+  $('#profileDue').innerHTML = `
+    <div class="kv-row"><span>الراتب الأساسي</span><b>${fmtNum(salary)}</b></div>
+    <div class="kv-row"><span>+ الإضافات والمكافآت</span><b class="amt-pos">${fmtNum(a)}</b></div>
+    <div class="kv-row"><span>− الخصومات والجزاءات (تشمل خصم الأيام والحضور الجزئي)</span><b class="amt-neg">${fmtNum(d)}</b></div>
+    <div class="kv-row"><span>− المسحوبات</span><b class="amt-neg">${fmtNum(w)}</b></div>
+    <div class="kv-row"><span>− أقساط السلف المسددة</span><b class="amt-neg">${fmtNum(r)}</b></div>
+    <div class="kv-row total"><span>صافي المستحق التقديري لشهر ${mr.label}</span><b>${fmtNum(net)} ج.م</b></div>
+    <div class="kv-row note"><span>للمقارنة: أجر أيام الحضور الفعلية (${fmtNum(days)} يوم × ${fmtNum(Math.round(daily*100)/100)})</span><span>${fmtNum(Math.round(days*daily*100)/100)} ج.م</span></div>
+    <div class="kv-row note"><span>ملحوظة: أيام الغياب اللي ماتسجلش عليها خصم ما بتتخصمش تلقائيًا — استخدم زرار «خصم أيام».</span><span></span></div>
+    ${salary>0 ? '' : '<div class="kv-row note"><span>⚠️ الراتب الأساسي غير مسجل — اضغط «تعديل البيانات» وأضفه.</span><span></span></div>'}`;
+
+  $('#profAttBody').innerHTML = attRecs.length ? attRecs.map(x=>{
+    const dt = parseYmd(x.date);
+    const hrs = workedHours(x);
+    return `<tr class="clickable" data-pa="${x.date}">
+      <td>${esc(dt.toLocaleDateString('ar-EG-u-nu-latn',{weekday:'long', day:'numeric', month:'numeric'}))}${isLate(x.inTime)?'<span class="soon-tag tag-warn">متأخر</span>':''}</td>
+      <td>${fmtTime(x.inTime)}</td><td>${fmtTime(x.outTime)}</td>
+      <td>${fracLabel(fracOf(x))}${hrs!==null?`<div class="meta">${fmtNum(hrs)} ساعة</div>`:''}</td></tr>`;
+  }).join('') : `<tr><td colspan="4" class="empty">لا يوجد حضور مسجل في هذا الشهر</td></tr>`;
+  document.querySelectorAll('#profAttBody [data-pa]').forEach(row=>row.addEventListener('click', ()=> openAttModal(emp.id, row.dataset.pa)));
+
+  $('#profTxnBody').innerHTML = txns.length ? txns.map(t=>{
+    const eff = PAY_EFFECT[t.type]||0;
+    const amt = fmtNum(t.amount);
+    const cell = eff>0 ? `<span class="amt-pos">+${amt}</span>` : eff<0 ? `<span class="amt-neg">−${amt}</span>` : `<span class="meta">${amt} (لا يدخل في المستحق)</span>`;
+    return `<tr><td>${esc(t.date)}</td><td>${esc(TXN_LABELS[t.type]||t.type)}${t.auto?'<span class="soon-tag">تلقائي</span>':''}</td><td>${cell}</td><td>${esc(t.reason)||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" data-pt="${t.id}">حذف</button></td></tr>`;
+  }).join('') : `<tr><td colspan="5" class="empty">لا توجد حركات في هذا الشهر</td></tr>`;
+  document.querySelectorAll('#profTxnBody [data-pt]').forEach(b=>b.addEventListener('click', ()=> deleteTxn(b.dataset.pt)));
+
+  $('#profLoansBody').innerHTML = empLoans.length ? empLoans.map(l=>{
+    const paid = Number(l.paidAmount||0), rem = Math.max(Number(l.amount)-paid,0);
+    return `<tr><td>${esc(l.date)}</td><td>${fmtNum(l.amount)}</td><td class="amt-pos">${fmtNum(paid)}</td><td class="amt-neg">${fmtNum(rem)}</td><td>${esc(LOAN_STATUS_LABELS[l.status]||l.status)}</td></tr>`;
+  }).join('') : `<tr><td colspan="5" class="empty">لا توجد سلف لهذا الموظف</td></tr>`;
+}
+
+// خصم أيام محددة (ربع / نصف / يوم / أكتر) من راتب الموظف
+function openDeductModal(employeeId){
+  const emp = employees.find(e=>e.id===employeeId); if(!emp) return;
+  $('#ded_emp').value = employeeId;
+  $('#ded_days').value = '1';
+  $('#ded_date').value = todayStr();
+  $('#ded_reason').value = '';
+  const daily = Math.round(dailyRate(emp)*100)/100;
+  $('#ded_info').textContent = daily>0 ? `${emp.name} — قيمة اليوم ${fmtNum(daily)} ج.م (الراتب ${fmtNum(emp.salary)} ÷ 30)` : `${emp.name} — الراتب غير مسجل، اكتب المبلغ يدويًا`;
+  recalcDeduct();
+  $('#dedOverlay').classList.add('show');
+}
+function recalcDeduct(){
+  const emp = employees.find(e=>e.id===$('#ded_emp').value);
+  const days = Number($('#ded_days').value)||0;
+  if(emp && dailyRate(emp)>0) $('#ded_amount').value = Math.round(dailyRate(emp)*days*100)/100;
+  document.querySelectorAll('#dedChips [data-d]').forEach(b=>b.classList.toggle('active', Number(b.dataset.d)===days));
+}
+async function saveDeduction(){
+  const employeeId = $('#ded_emp').value;
+  const days = Number($('#ded_days').value), amount = Number($('#ded_amount').value);
+  if(!days || days<=0){ toast('اكتب عدد الأيام'); return; }
+  if(!amount || amount<=0){ toast('المبلغ لازم يكون أكبر من صفر'); return; }
+  const id = newId('t_');
+  const data = {employeeId, type:'deduction', amount, date:$('#ded_date').value||todayStr(), reason:$('#ded_reason').value.trim() || ('خصم '+fracLabel(days)), notes:'', dayFraction:days, refNo:nextRefNo(), createdAt:Date.now()};
+  transactions.push({id, ...data});
+  $('#dedOverlay').classList.remove('show');
+  renderAll();
+  try{
+    await dbSet('transactions', id, data);
+    const emp = employees.find(e=>e.id===employeeId);
+    logAudit('خصم أيام', `${emp?emp.name:''} — ${fracLabel(days)} — ${amount} ج.م`);
+    toast('تم تسجيل الخصم ✓', 'success');
+  }catch(e){
+    toast('تعذر حفظ الخصم على الخادم — تحقق من الاتصال');
+    transactions = transactions.filter(t=>t.id!==id); renderAll();
   }
-  $('#stmtBalance').textContent = balance.toLocaleString('ar-EG');
-  $('#stmtOverlay').classList.add('show');
 }
 
 // ---------- audit log ----------
@@ -1579,7 +2017,7 @@ function renderAudit(){
     return;
   }
   $('#auditBody').innerHTML = auditLog.map(a=>`
-    <tr><td>${new Date(a.timestamp).toLocaleString('ar-EG')}</td><td>${a.action}</td><td>${a.details||'—'}</td></tr>
+    <tr><td>${new Date(a.timestamp).toLocaleString('ar-EG-u-nu-latn')}</td><td>${a.action}</td><td>${a.details||'—'}</td></tr>
   `).join('');
 }
 
@@ -1587,7 +2025,7 @@ function renderAudit(){
 function exportBackup(){
   const payload = {
     exportedAt: new Date().toISOString(),
-    employees, attendance, transactions, loans, leaves, settings,
+    employees, attendanceDays: attendance, transactions, loans, leaves, settings,
   };
   saveFile('نسخة-احتياطية-حمام-التلات-'+todayStr()+'.json', JSON.stringify(payload, null, 2));
   logAudit('تصدير نسخة احتياطية', `${employees.length} موظف، ${attendance.length} سجل حضور`);
@@ -1600,7 +2038,7 @@ async function importBackupFromFile(file){
   if(!confirm('سيتم دمج بيانات هذا الملف مع البيانات الحالية (السجلات بنفس المعرف تُستبدل، ولن يُحذف أي شيء غير موجود بالملف). متابعة؟')) return;
   try{
     if(db){
-      for(const key of ['employees','attendance','transactions','loans','leaves']){
+      for(const key of ['employees','attendanceDays','transactions','loans','leaves']){
         for(const rec of (data[key]||[])){
           const {id, ...rest} = rec;
           if(id) await db.collection(key).doc(id).set(rest);
@@ -1662,19 +2100,10 @@ async function deleteLeave(id){
 
 // ---------- reports ----------
 function daysAttendedInRange(employeeId, start, end){
-  // بيجمع مقدار يوم العمل الفعلي (1 / 0.5 / 0.25) لكل يوم — مش عدد الأيام بس —
-  // عشان يطلع رقم دقيق تقدر تحسب بيه المستحقات المالية آخر الشهر
-  const byDate = {};
-  attendance.filter(a=>a.employeeId===employeeId && a.type==='in').forEach(a=>{
-    const t = new Date(a.timestamp);
-    if(t>=start && t<=end){
-      const key = t.toDateString();
-      const frac = (a.dayFraction===undefined || a.dayFraction===null) ? 1 : Number(a.dayFraction);
-      // لو فيه أكتر من تسجيل حضور في نفس اليوم، ياخد أكبر قيمة (يوم كامل بيغلب نص يوم مثلاً)
-      byDate[key] = Math.max(byDate[key]||0, frac);
-    }
-  });
-  return Object.values(byDate).reduce((s,v)=>s+v, 0);
+  // بيجمع مقدار يوم العمل الفعلي (1 / 0.5 / 0.25) لكل يوم مسجل
+  const s = ymd(start), e = ymd(end);
+  return attendance.filter(a=>a.employeeId===employeeId && a.date>=s && a.date<=e && (a.inTime||a.outTime))
+    .reduce((sum,a)=>sum+fracOf(a), 0);
 }
 function daysInRange(start,end){ return Math.max(Math.round((end-start)/86400000)+1, 1); }
 
@@ -1757,19 +2186,19 @@ function generateReport(){
 function renderReportTable(){
   const {title, headers, rows, from, to} = currentReport;
   $('#reportTitle').textContent = title;
-  $('#reportMeta').textContent = `${settings.facilityName} — الفترة: ${from} إلى ${to} — تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG')}`;
-  $('#reportPrintHeader').innerHTML = `<h2>${settings.facilityName}</h2><div class="sub">${title} — من ${from} إلى ${to} — استُخرج في ${new Date().toLocaleDateString('ar-EG')}</div>`;
+  $('#reportMeta').textContent = `${settings.facilityName} — الفترة: ${from} إلى ${to} — تاريخ الاستخراج: ${new Date().toLocaleString('ar-EG-u-nu-latn')}`;
+  $('#reportPrintHeader').innerHTML = `<h2>${settings.facilityName}</h2><div class="sub">${title} — من ${from} إلى ${to} — استُخرج في ${new Date().toLocaleDateString('ar-EG-u-nu-latn')}</div>`;
   $('#reportHead').innerHTML = headers.map(h=>`<th>${h}</th>`).join('');
   if(rows.length===0){
     $('#reportBody').innerHTML = `<tr><td colspan="${headers.length}" class="empty">لا توجد بيانات ضمن هذه الفلاتر</td></tr>`;
     $('#reportFoot').innerHTML = '';
   } else {
-    $('#reportBody').innerHTML = rows.map(r=>`<tr>${r.map(c=>`<td>${typeof c==='number'?c.toLocaleString('ar-EG'):c}</td>`).join('')}</tr>`).join('');
+    $('#reportBody').innerHTML = rows.map(r=>`<tr>${r.map(c=>`<td>${typeof c==='number'?c.toLocaleString('ar-EG-u-nu-latn'):c}</td>`).join('')}</tr>`).join('');
     const totals = headers.map((h,i)=>{
       if(i===0) return 'الإجمالي';
       const allNum = rows.every(r=> typeof r[i]==='number');
       if(!allNum) return '';
-      return rows.reduce((s,r)=>s+r[i],0).toLocaleString('ar-EG');
+      return rows.reduce((s,r)=>s+r[i],0).toLocaleString('ar-EG-u-nu-latn');
     });
     $('#reportFoot').innerHTML = totals.map(t=>`<td>${t}</td>`).join('');
   }
